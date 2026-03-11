@@ -11,6 +11,7 @@ import Jobs from "./pages/Jobs";
 import CalendarPage from "./pages/CalendarPage";
 import Messages from "./pages/Messages";
 import SettingsPage from "./pages/SettingsPage";
+import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
