@@ -1,11 +1,16 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 interface TeamMember {
   id: string;
@@ -15,11 +20,22 @@ interface TeamMember {
   status: "ativo" | "inativo";
 }
 
-const initialMembers: TeamMember[] = [
+const STORAGE_KEY = "zr_team_members";
+
+const defaultMembers: TeamMember[] = [
   { id: "1", name: "Ana Silva", email: "ana@empresa.com", role: "admin", status: "ativo" },
   { id: "2", name: "Carlos Lima", email: "carlos@empresa.com", role: "recrutador", status: "ativo" },
   { id: "3", name: "Maria Santos", email: "maria@empresa.com", role: "visualizador", status: "inativo" },
 ];
+
+const loadMembers = (): TeamMember[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : defaultMembers;
+  } catch {
+    return defaultMembers;
+  }
+};
 
 const roleColors: Record<string, string> = {
   admin: "bg-destructive/10 text-destructive",
@@ -28,14 +44,21 @@ const roleColors: Record<string, string> = {
 };
 
 const SettingsUsersPage = () => {
-  const [members, setMembers] = useState<TeamMember[]>(initialMembers);
+  const [members, setMembers] = useState<TeamMember[]>(loadMembers);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TeamMember["role"]>("recrutador");
 
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+  }, [members]);
+
   const addMember = () => {
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim() || !email.trim()) {
+      toast.error("Preencha nome e email");
+      return;
+    }
     setMembers((prev) => [
       { id: Date.now().toString(), name: name.trim(), email: email.trim(), role, status: "ativo" },
       ...prev,
@@ -44,6 +67,12 @@ const SettingsUsersPage = () => {
     setEmail("");
     setRole("recrutador");
     setOpen(false);
+    toast.success("Membro adicionado com sucesso!");
+  };
+
+  const removeMember = (id: string) => {
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+    toast.success("Membro removido");
   };
 
   const toggleStatus = (id: string) => {
@@ -98,10 +127,32 @@ const SettingsUsersPage = () => {
               <p className="text-xs text-muted-foreground truncate">{m.email}</p>
             </div>
             <Badge variant="outline" className={roleColors[m.role]}>{m.role}</Badge>
-            <Badge variant={m.status === "ativo" ? "default" : "secondary"} className="text-xs">{m.status}</Badge>
-            <Button variant="ghost" size="icon" onClick={() => toggleStatus(m.id)}>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
+            <Badge
+              variant={m.status === "ativo" ? "default" : "secondary"}
+              className="text-xs cursor-pointer"
+              onClick={() => toggleStatus(m.id)}
+            >
+              {m.status}
+            </Badge>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remover membro</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja remover <strong>{m.name}</strong> da equipe? Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => removeMember(m.id)}>Remover</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         ))}
       </div>
