@@ -12,6 +12,8 @@ import Jobs from "./pages/Jobs";
 import CalendarPage from "./pages/CalendarPage";
 import Messages from "./pages/Messages";
 import SettingsPage from "./pages/SettingsPage";
+import SettingsUsersPage from "./pages/SettingsUsersPage";
+import SettingsPermissionsPage from "./pages/SettingsPermissionsPage";
 import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +35,8 @@ const App = () => (
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/settings/users" element={<SettingsUsersPage />} />
+              <Route path="/settings/permissions" element={<SettingsPermissionsPage />} />
               <Route path="/pricing" element={<PricingPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
