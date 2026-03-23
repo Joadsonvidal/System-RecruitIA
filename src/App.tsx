@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AppProvider } from "./contexts/AppContext";
 import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import Pipeline from "./pages/Pipeline";
@@ -22,19 +23,21 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/pipeline" element={<Pipeline />} />
-            <Route path="/candidates" element={<Candidates />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppProvider>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/pipeline" element={<Pipeline />} />
+              <Route path="/candidates" element={<Candidates />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AppProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

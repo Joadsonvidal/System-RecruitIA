@@ -1,42 +1,75 @@
 import { useState } from "react";
-import { Search, Plus, Phone, Mail } from "lucide-react";
+import { Search, Phone } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { mockCandidates, PIPELINE_STAGES } from "@/data/mockData";
+import { PIPELINE_STAGES } from "@/data/mockData";
+import { useAppContext } from "@/contexts/AppContext";
+import AddCandidateDialog from "@/components/AddCandidateDialog";
+import CandidateDetailDialog from "@/components/CandidateDetailDialog";
+import { type Candidate } from "@/data/mockData";
 
 const Candidates = () => {
+  const { candidates, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate } = useAppContext();
   const [search, setSearch] = useState("");
-  const filtered = mockCandidates.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.position.toLowerCase().includes(search.toLowerCase())
-  );
+  const [stageFilter, setStageFilter] = useState<string | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
-  const getStageLabel = (stageId: string) =>
-    PIPELINE_STAGES.find((s) => s.id === stageId)?.label ?? stageId;
-  const getStageColor = (stageId: string) =>
-    PIPELINE_STAGES.find((s) => s.id === stageId)?.color ?? "hsl(0,0%,50%)";
+  const filtered = candidates.filter((c) => {
+    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.position.toLowerCase().includes(search.toLowerCase());
+    const matchesStage = !stageFilter || c.stage === stageFilter;
+    return matchesSearch && matchesStage;
+  });
+
+  const stageCounts = PIPELINE_STAGES.map((stage) => ({
+    ...stage,
+    count: candidates.filter((c) => c.stage === stage.id).length,
+  }));
+
+  const getStageLabel = (stageId: string) => PIPELINE_STAGES.find((s) => s.id === stageId)?.label ?? stageId;
+  const getStageColor = (stageId: string) => PIPELINE_STAGES.find((s) => s.id === stageId)?.color ?? "hsl(0,0%,50%)";
+
+  const openDetail = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setDetailOpen(true);
+  };
 
   return (
     <div className="space-y-6 animate-slide-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Candidatos</h1>
-          <p className="text-muted-foreground text-sm mt-1">{mockCandidates.length} candidatos cadastrados</p>
+          <p className="text-muted-foreground text-sm mt-1">{candidates.length} candidatos cadastrados</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-1" /> Novo Candidato
-        </Button>
+        <AddCandidateDialog onAdd={addCandidate} jobs={jobTitles} />
+      </div>
+
+      {/* Stage Dashboard */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <button
+          onClick={() => setStageFilter(null)}
+          className={`rounded-lg border p-3 text-center transition-colors ${!stageFilter ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}
+        >
+          <p className="text-xs font-medium text-muted-foreground">Todos</p>
+          <p className="text-xl font-bold">{candidates.length}</p>
+        </button>
+        {stageCounts.map((stage) => (
+          <button
+            key={stage.id}
+            onClick={() => setStageFilter(stageFilter === stage.id ? null : stage.id)}
+            className={`rounded-lg border p-3 text-center transition-colors ${stageFilter === stage.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}
+          >
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: stage.color }} />
+              <span className="text-xs font-medium text-muted-foreground">{stage.label}</span>
+            </div>
+            <p className="text-xl font-bold">{stage.count}</p>
+          </button>
+        ))}
       </div>
 
       <div className="relative w-full max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Buscar candidatos..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+        <Input placeholder="Buscar candidatos..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -53,7 +86,7 @@ const Candidates = () => {
           </thead>
           <tbody>
             {filtered.map((c) => (
-              <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer">
+              <tr key={c.id} onClick={() => openDetail(c)} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
@@ -72,10 +105,7 @@ const Candidates = () => {
                 <td className="px-4 py-3">
                   <span
                     className="inline-block text-xs font-medium px-2 py-1 rounded-full"
-                    style={{
-                      backgroundColor: `${getStageColor(c.stage)}15`,
-                      color: getStageColor(c.stage),
-                    }}
+                    style={{ backgroundColor: `${getStageColor(c.stage)}15`, color: getStageColor(c.stage) }}
                   >
                     {getStageLabel(c.stage)}
                   </span>
@@ -84,9 +114,22 @@ const Candidates = () => {
                 <td className="px-4 py-3 text-sm text-muted-foreground">{c.recruiter}</td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">Nenhum candidato encontrado.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      <CandidateDetailDialog
+        candidate={selectedCandidate ? candidates.find(c => c.id === selectedCandidate.id) || selectedCandidate : null}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        onUpdateStage={updateCandidateStage}
+        onAddNote={addNoteToCandidate}
+      />
     </div>
   );
 };
