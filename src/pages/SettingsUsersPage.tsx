@@ -22,7 +22,7 @@ const roleColors: Record<string, string> = {
 };
 
 const SettingsUsersPage = () => {
-  const [members, setMembers] = useState<TeamMember[]>(loadMembers);
+  const [members, setMembers] = useState<TeamMember[]>(getTeamMembers);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
