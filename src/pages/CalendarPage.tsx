@@ -1,5 +1,7 @@
-import { Video, MapPin, Phone } from "lucide-react";
+import { Video, MapPin, Phone, CalendarPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { mockInterviews } from "@/data/mockData";
+import { toast } from "sonner";
 
 const typeIcons = {
   video: Video,
@@ -7,12 +9,25 @@ const typeIcons = {
   telefone: Phone,
 };
 
+const GOOGLE_CALENDAR_SCOPES = "https://www.googleapis.com/auth/calendar.events";
+const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+
 const CalendarPage = () => {
+  const handleConnectGoogleCalendar = () => {
+    toast.info("A integração com Google Calendar requer configuração do OAuth. Em breve disponível!");
+  };
+
   return (
     <div className="space-y-6 animate-slide-in">
-      <div>
-        <h1 className="text-2xl font-bold">Agenda</h1>
-        <p className="text-muted-foreground text-sm mt-1">Suas entrevistas e compromissos</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Agenda</h1>
+          <p className="text-muted-foreground text-sm mt-1">Suas entrevistas e compromissos</p>
+        </div>
+        <Button onClick={handleConnectGoogleCalendar} variant="outline" className="gap-2">
+          <CalendarPlus className="h-4 w-4" />
+          Conectar Google Calendar
+        </Button>
       </div>
 
       <div className="space-y-3">
