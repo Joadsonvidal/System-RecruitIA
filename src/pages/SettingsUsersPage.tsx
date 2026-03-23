@@ -11,31 +11,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "recrutador" | "visualizador";
-  status: "ativo" | "inativo";
-}
+import { type TeamMember, getTeamMembers } from "@/hooks/useTeamMembers";
 
 const STORAGE_KEY = "zr_team_members";
-
-const defaultMembers: TeamMember[] = [
-  { id: "1", name: "Ana Silva", email: "ana@empresa.com", role: "admin", status: "ativo" },
-  { id: "2", name: "Carlos Lima", email: "carlos@empresa.com", role: "recrutador", status: "ativo" },
-  { id: "3", name: "Maria Santos", email: "maria@empresa.com", role: "visualizador", status: "inativo" },
-];
-
-const loadMembers = (): TeamMember[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : defaultMembers;
-  } catch {
-    return defaultMembers;
-  }
-};
 
 const roleColors: Record<string, string> = {
   admin: "bg-destructive/10 text-destructive",
@@ -44,7 +22,7 @@ const roleColors: Record<string, string> = {
 };
 
 const SettingsUsersPage = () => {
-  const [members, setMembers] = useState<TeamMember[]>(loadMembers);
+  const [members, setMembers] = useState<TeamMember[]>(getTeamMembers);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
