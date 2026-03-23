@@ -16,8 +16,9 @@ interface AddCandidateDialogProps {
 
 const AddCandidateDialog = ({ onAdd, jobs, trigger }: AddCandidateDialogProps) => {
   const [open, setOpen] = useState(false);
+  const recruiters = getActiveRecruiters();
   const [form, setForm] = useState({
-    name: "", phone: "", email: "", position: "", origin: "LinkedIn", recruiter: "Maria", notes: "",
+    name: "", phone: "", email: "", position: "", origin: "LinkedIn", recruiter: recruiters[0] || "", notes: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,7 +89,7 @@ const AddCandidateDialog = ({ onAdd, jobs, trigger }: AddCandidateDialogProps) =
               <Select value={form.recruiter} onValueChange={(v) => setForm({ ...form, recruiter: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {["Maria", "João"].map((r) => (
+                  {recruiters.map((r) => (
                     <SelectItem key={r} value={r}>{r}</SelectItem>
                   ))}
                 </SelectContent>
