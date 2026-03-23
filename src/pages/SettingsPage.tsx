@@ -1,11 +1,12 @@
+import { Link } from "react-router-dom";
 import { User, Shield, FileText, MessageSquare, CreditCard } from "lucide-react";
 
 const sections = [
-  { icon: User, label: "Usuários", description: "Gerencie os membros da sua equipe" },
-  { icon: Shield, label: "Permissões", description: "Configure acessos e roles" },
-  { icon: FileText, label: "Templates", description: "Modelos de mensagens automáticas" },
-  { icon: MessageSquare, label: "WhatsApp", description: "Configure a integração com WhatsApp" },
-  { icon: CreditCard, label: "Plano", description: "Gerencie sua assinatura" },
+  { icon: User, label: "Usuários", description: "Gerencie os membros da sua equipe", path: "" },
+  { icon: Shield, label: "Permissões", description: "Configure acessos e roles", path: "" },
+  { icon: FileText, label: "Templates", description: "Modelos de mensagens automáticas", path: "" },
+  { icon: MessageSquare, label: "WhatsApp", description: "Configure a integração com WhatsApp", path: "/messages" },
+  { icon: CreditCard, label: "Plano", description: "Gerencie sua assinatura", path: "/pricing" },
 ];
 
 const SettingsPage = () => {
@@ -17,17 +18,24 @@ const SettingsPage = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {sections.map((section) => (
-          <div key={section.label} className="stat-card flex items-center gap-4 cursor-pointer hover:border-primary/30 transition-colors">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-              <section.icon className="h-5 w-5" />
+        {sections.map((section) => {
+          const content = (
+            <div className="stat-card flex items-center gap-4 cursor-pointer hover:border-primary/30 transition-colors">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                <section.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{section.label}</p>
+                <p className="text-xs text-muted-foreground">{section.description}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold">{section.label}</p>
-              <p className="text-xs text-muted-foreground">{section.description}</p>
-            </div>
-          </div>
-        ))}
+          );
+          return section.path ? (
+            <Link key={section.label} to={section.path}>{content}</Link>
+          ) : (
+            <div key={section.label}>{content}</div>
+          );
+        })}
       </div>
     </div>
   );
