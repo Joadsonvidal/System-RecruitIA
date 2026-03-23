@@ -39,7 +39,11 @@ export const useCandidates = () => {
     );
   };
 
+  const deleteCandidate = (id: string) => {
+    setCandidates((prev) => prev.filter((c) => c.id !== id));
+  };
+
   const jobTitles = jobs.filter((j) => j.status === "open").map((j) => j.title);
 
-  return { candidates, jobs, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate, addJob, toggleJobStatus };
+  return { candidates, jobs, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate, addJob, toggleJobStatus, deleteCandidate };
 };

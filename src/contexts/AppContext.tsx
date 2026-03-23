@@ -11,6 +11,7 @@ interface AppContextType {
   addNoteToCandidate: (id: string, note: string) => void;
   addJob: (job: Job) => void;
   toggleJobStatus: (id: string) => void;
+  deleteCandidate: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);

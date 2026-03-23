@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 import { type Candidate } from "@/data/mockData";
+import { getActiveRecruiters } from "@/hooks/useTeamMembers";
 
 interface AddCandidateDialogProps {
   onAdd: (candidate: Candidate) => void;
