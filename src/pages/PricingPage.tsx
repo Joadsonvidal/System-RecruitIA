@@ -100,6 +100,7 @@ const PricingPage = () => {
             <Button
               className="w-full"
               variant={plan.popular ? "default" : "outline"}
+              onClick={() => window.open(plan.url, "_blank")}
             >
               Começar agora
             </Button>
