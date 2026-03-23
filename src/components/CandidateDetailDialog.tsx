@@ -1,9 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, Mail, User, MapPin, FileText, MessageSquare } from "lucide-react";
+import { Phone, Mail, User, MapPin, FileText, MessageSquare, Trash2 } from "lucide-react";
 import { type Candidate, PIPELINE_STAGES } from "@/data/mockData";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -14,9 +15,10 @@ interface CandidateDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   onUpdateStage: (id: string, stage: string) => void;
   onAddNote: (id: string, note: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, onAddNote }: CandidateDetailDialogProps) => {
+const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, onAddNote, onDelete }: CandidateDetailDialogProps) => {
   const [newNote, setNewNote] = useState("");
 
   if (!candidate) return null;
@@ -35,6 +37,14 @@ const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, o
     toast({ title: "Etapa atualizada", description: `${candidate.name} movido para ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}` });
   };
 
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(candidate.id);
+      onOpenChange(false);
+      toast({ title: "Candidato excluído", description: `${candidate.name} foi removido.` });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -43,15 +53,37 @@ const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, o
             <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg font-bold">
               {candidate.name.charAt(0)}
             </div>
-            <div>
+            <div className="flex-1">
               <p>{candidate.name}</p>
               <p className="text-sm font-normal text-muted-foreground">{candidate.position}</p>
             </div>
+            {onDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir candidato?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir {candidate.name}? Esta ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5">
-          {/* Contact Info */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center gap-2 text-sm">
               <Phone className="h-4 w-4 text-muted-foreground" />
@@ -71,7 +103,6 @@ const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, o
             </div>
           </div>
 
-          {/* Stage Selector */}
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">Etapa:</span>
             <Select value={candidate.stage} onValueChange={handleStageChange}>
@@ -94,7 +125,6 @@ const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, o
             )}
           </div>
 
-          {/* Notes */}
           <div className="space-y-2">
             <p className="text-sm font-medium flex items-center gap-1.5">
               <FileText className="h-4 w-4" /> Notas
@@ -113,7 +143,6 @@ const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, o
             </Button>
           </div>
 
-          {/* Last Interaction */}
           <p className="text-xs text-muted-foreground">Última interação: {candidate.lastInteraction}</p>
         </div>
       </DialogContent>

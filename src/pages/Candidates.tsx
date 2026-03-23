@@ -8,7 +8,7 @@ import CandidateDetailDialog from "@/components/CandidateDetailDialog";
 import { type Candidate } from "@/data/mockData";
 
 const Candidates = () => {
-  const { candidates, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate } = useAppContext();
+  const { candidates, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate, deleteCandidate } = useAppContext();
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
@@ -129,6 +129,7 @@ const Candidates = () => {
         onOpenChange={setDetailOpen}
         onUpdateStage={updateCandidateStage}
         onAddNote={addNoteToCandidate}
+        onDelete={deleteCandidate}
       />
     </div>
   );

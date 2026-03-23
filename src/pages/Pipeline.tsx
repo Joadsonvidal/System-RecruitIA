@@ -7,7 +7,7 @@ import CandidateDetailDialog from "@/components/CandidateDetailDialog";
 import { Button } from "@/components/ui/button";
 
 const Pipeline = () => {
-  const { candidates, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate } = useAppContext();
+  const { candidates, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate, deleteCandidate } = useAppContext();
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -94,6 +94,7 @@ const Pipeline = () => {
         onOpenChange={setDetailOpen}
         onUpdateStage={updateCandidateStage}
         onAddNote={addNoteToCandidate}
+        onDelete={deleteCandidate}
       />
     </div>
   );
