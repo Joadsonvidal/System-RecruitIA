@@ -12,6 +12,8 @@ import Jobs from "./pages/Jobs";
 import CalendarPage from "./pages/CalendarPage";
 import Messages from "./pages/Messages";
 import SettingsPage from "./pages/SettingsPage";
+import SettingsUsersPage from "./pages/SettingsUsersPage";
+import SettingsPermissionsPage from "./pages/SettingsPermissionsPage";
 import PricingPage from "./pages/PricingPage";
 import NotFound from "./pages/NotFound";
 
