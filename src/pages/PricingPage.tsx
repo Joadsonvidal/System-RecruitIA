@@ -8,6 +8,7 @@ const plans = [
     price: "197",
     icon: Zap,
     popular: false,
+    url: "https://pay.kiwify.com.br/AGgZs7x",
     features: [
       "1 usuário",
       "Até 10 vagas ativas",
@@ -21,13 +22,13 @@ const plans = [
     price: "237",
     icon: Star,
     popular: true,
+    url: "https://pay.kiwify.com.br/RTJHZ38",
     features: [
       "5 usuários",
       "Vagas ilimitadas",
       "Pipeline completo",
       "Entrevistas e agenda",
       "Lembretes automáticos",
-      "Templates de mensagens",
       "Integrações",
     ],
   },
@@ -36,6 +37,7 @@ const plans = [
     price: "297",
     icon: Building2,
     popular: false,
+    url: "https://pay.kiwify.com.br/fqFOJ5M",
     features: [
       "Usuários ilimitados",
       "Tudo do Pro",
@@ -98,6 +100,7 @@ const PricingPage = () => {
             <Button
               className="w-full"
               variant={plan.popular ? "default" : "outline"}
+              onClick={() => window.open(plan.url, "_blank")}
             >
               Começar agora
             </Button>
