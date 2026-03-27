@@ -19,29 +19,11 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-/** Build a list of year-month options from the data + always include current month */
-function buildMonthOptions(candidates: { createdAt?: string; hireDate?: string; terminationDate?: string }[], jobs: { createdAt: string }[]) {
-  const set = new Set<string>();
-  const now = new Date();
-  set.add(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`);
-
-  candidates.forEach((c) => {
-    [c.createdAt, c.hireDate, c.terminationDate].forEach((d) => {
-      if (d) set.add(d.slice(0, 7));
-    });
-  });
-  jobs.forEach((j) => {
-    if (j.createdAt) set.add(j.createdAt.slice(0, 7));
-  });
-
-  return Array.from(set)
-    .sort()
-    .reverse()
-    .map((key) => {
-      const [y, m] = key.split("-");
-      return { value: key, label: `${MONTH_NAMES[parseInt(m, 10) - 1]} ${y}` };
-    });
-}
+const YEAR = 2026;
+const ALL_MONTH_OPTIONS = MONTH_NAMES.map((name, i) => ({
+  value: `${YEAR}-${String(i + 1).padStart(2, "0")}`,
+  label: `${name} ${YEAR}`,
+}));
 
 /** Check if a date string (YYYY-MM-DD) belongs to a year-month key (YYYY-MM) */
 function isInMonth(dateStr: string | undefined, monthKey: string): boolean {
@@ -64,8 +46,7 @@ const Dashboard = () => {
     return members.filter((m) => m.status === "ativo").map((m) => m.name).sort();
   }, []);
 
-  // Month options derived from all data
-  const monthOptions = useMemo(() => buildMonthOptions(candidates, jobs), [candidates, jobs]);
+  const monthOptions = ALL_MONTH_OPTIONS;
 
   // --- Desligados dialog state ---
   const [addTermOpen, setAddTermOpen] = useState(false);
