@@ -1,28 +1,38 @@
 import { useState, useMemo } from "react";
-import { Users, Briefcase, Calendar, AlertCircle, UserPlus, ArrowRight, UserMinus, DollarSign, Filter } from "lucide-react";
+import { Users, Briefcase, Calendar, UserPlus, ArrowRight, UserMinus, DollarSign, Filter, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { PIPELINE_STAGES } from "@/data/mockData";
+import { getTeamMembers } from "@/hooks/useTeamMembers";
 import { Link } from "react-router-dom";
 import AddCandidateDialog from "@/components/AddCandidateDialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-
-const MONTHS = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-];
+import { toast } from "sonner";
 
 const Dashboard = () => {
-  const { candidates, jobs, jobTitles, addCandidate } = useAppContext();
+  const { candidates, jobs, jobTitles, addCandidate, updateCandidate, deleteCandidate } = useAppContext();
   const [selectedRecruiter, setSelectedRecruiter] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<string>(String(new Date().getMonth()));
 
+  // Connect recruiters to team members
   const recruiters = useMemo(() => {
-    const set = new Set(candidates.map((c) => c.recruiter));
-    return Array.from(set).sort();
-  }, [candidates]);
+    const members = getTeamMembers();
+    return members.filter((m) => m.status === "ativo").map((m) => m.name).sort();
+  }, []);
+
+  // --- Desligados dialog state ---
+  const [addTermOpen, setAddTermOpen] = useState(false);
+  const [termCandidateId, setTermCandidateId] = useState("");
+  const [termDate, setTermDate] = useState(new Date().toISOString().split("T")[0]);
+
+  // --- Payroll edit state ---
+  const [editingPayroll, setEditingPayroll] = useState<string | null>(null);
+  const [editSalary, setEditSalary] = useState("");
 
   // Filtered candidates by recruiter
   const filtered = useMemo(() => {
@@ -32,7 +42,6 @@ const Dashboard = () => {
 
   const interviewCandidates = filtered.filter((c) => c.stage === "interview");
   const terminatedCandidates = filtered.filter((c) => c.stage === "terminated");
-  const approvedCandidates = filtered.filter((c) => c.stage === "approved" && c.salary);
 
   const stageCounts = PIPELINE_STAGES.map((stage) => ({
     ...stage,
@@ -48,6 +57,36 @@ const Dashboard = () => {
   ];
 
   const recentCandidates = filtered.filter((c) => c.stage === "new").slice(0, 5);
+
+  // Candidates eligible to be marked as terminated (approved only)
+  const eligibleForTermination = candidates.filter((c) => c.stage === "approved");
+
+  const handleAddTerminated = () => {
+    if (!termCandidateId) {
+      toast.error("Selecione um colaborador");
+      return;
+    }
+    updateCandidate(termCandidateId, { stage: "terminated", terminationDate: termDate });
+    toast.success("Colaborador marcado como desligado");
+    setAddTermOpen(false);
+    setTermCandidateId("");
+  };
+
+  const handleRemoveTerminated = (id: string) => {
+    deleteCandidate(id);
+    toast.success("Desligado removido da lista");
+  };
+
+  const handleSavePayroll = (id: string) => {
+    const value = parseFloat(editSalary.replace(/[^\d.,]/g, "").replace(",", "."));
+    if (isNaN(value)) {
+      toast.error("Valor inválido");
+      return;
+    }
+    updateCandidate(id, { salary: value });
+    setEditingPayroll(null);
+    toast.success("Salário atualizado");
+  };
 
   // Payroll data for chart
   const payrollByRecruiter = useMemo(() => {
@@ -76,6 +115,9 @@ const Dashboard = () => {
     });
     return Object.values(data);
   }, [candidates, recruiters]);
+
+  // Payroll candidates (approved + terminated with salary)
+  const payrollCandidates = candidates.filter((c) => c.salary && (c.stage === "approved" || c.stage === "terminated"));
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -160,16 +202,48 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Terminated Employees */}
+        {/* Terminated Employees - with Add/Remove */}
         <div className="stat-card">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <UserMinus className="h-5 w-5 text-destructive" />
               <h2 className="font-semibold">Desligados</h2>
+              <span className="text-sm font-bold text-destructive">({terminatedCandidates.length})</span>
             </div>
-            <span className="text-sm font-bold text-destructive">{terminatedCandidates.length}</span>
+            <Dialog open={addTermOpen} onOpenChange={setAddTermOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10">
+                  <Plus className="h-4 w-4 mr-1" /> Adicionar
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Registrar Desligamento</DialogTitle>
+                  <DialogDescription>Selecione um colaborador ativo para marcar como desligado.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 pt-2">
+                  <Select value={termCandidateId} onValueChange={setTermCandidateId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar colaborador" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eligibleForTermination.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name} — {c.position}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Data de Desligamento</label>
+                    <Input type="date" value={termDate} onChange={(e) => setTermDate(e.target.value)} />
+                  </div>
+                  <Button className="w-full" variant="destructive" onClick={handleAddTerminated}>
+                    Confirmar Desligamento
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[320px] overflow-auto">
             {terminatedCandidates.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum desligamento registrado.</p>
             ) : (
@@ -184,12 +258,31 @@ const Dashboard = () => {
                       <p className="text-xs text-muted-foreground">{c.position} · {c.recruiter}</p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="flex items-center gap-2">
                     {c.terminationDate && (
                       <p className="text-xs text-muted-foreground">
                         {new Date(c.terminationDate).toLocaleDateString("pt-BR")}
                       </p>
                     )}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remover desligado</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Remover <strong>{c.name}</strong> da lista de desligados? Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleRemoveTerminated(c.id)}>Remover</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))
@@ -230,7 +323,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Payroll Comparison Table */}
+      {/* Payroll Comparison Table - Editable */}
       <div className="stat-card">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -250,30 +343,62 @@ const Dashboard = () => {
                   <TableHead>Recrutador</TableHead>
                   <TableHead className="text-right">Salário (R$)</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-[60px]">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {candidates
-                  .filter((c) => c.salary && (c.stage === "approved" || c.stage === "terminated"))
-                  .map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-medium">{c.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{c.position}</TableCell>
-                      <TableCell className="text-muted-foreground">{c.recruiter}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {c.salary!.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          c.stage === "approved"
-                            ? "bg-primary/10 text-primary"
-                            : "bg-destructive/10 text-destructive"
-                        }`}>
-                          {c.stage === "approved" ? "Ativo" : "Desligado"}
+                {payrollCandidates.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{c.position}</TableCell>
+                    <TableCell className="text-muted-foreground">{c.recruiter}</TableCell>
+                    <TableCell className="text-right">
+                      {editingPayroll === c.id ? (
+                        <Input
+                          className="w-[120px] ml-auto text-right h-8"
+                          value={editSalary}
+                          onChange={(e) => setEditSalary(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSavePayroll(c.id)}
+                          autoFocus
+                        />
+                      ) : (
+                        <span className="font-medium">
+                          {c.salary!.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        c.stage === "approved"
+                          ? "bg-primary/10 text-primary"
+                          : "bg-destructive/10 text-destructive"
+                      }`}>
+                        {c.stage === "approved" ? "Ativo" : "Desligado"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {editingPayroll === c.id ? (
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => handleSavePayroll(c.id)}>
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayroll(null)}>
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => { setEditingPayroll(c.id); setEditSalary(String(c.salary || "")); }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
                 {/* Totals */}
                 <TableRow className="border-t-2">
                   <TableCell colSpan={3} className="font-bold">Total Folha Ativa</TableCell>
@@ -283,7 +408,7 @@ const Dashboard = () => {
                       .reduce((sum, c) => sum + (c.salary || 0), 0)
                       .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                   </TableCell>
-                  <TableCell />
+                  <TableCell colSpan={2} />
                 </TableRow>
               </TableBody>
             </Table>

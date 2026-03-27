@@ -43,7 +43,13 @@ export const useCandidates = () => {
     setCandidates((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const updateCandidate = (id: string, updates: Partial<Candidate>) => {
+    setCandidates((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
+    );
+  };
+
   const jobTitles = jobs.filter((j) => j.status === "open").map((j) => j.title);
 
-  return { candidates, jobs, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate, addJob, toggleJobStatus, deleteCandidate };
+  return { candidates, jobs, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate, addJob, toggleJobStatus, deleteCandidate, updateCandidate };
 };
