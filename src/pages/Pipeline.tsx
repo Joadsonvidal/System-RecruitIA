@@ -1,16 +1,42 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Phone, MoreHorizontal } from "lucide-react";
 import { PIPELINE_STAGES, type Candidate } from "@/data/mockData";
 import { useAppContext } from "@/contexts/AppContext";
 import AddCandidateDialog from "@/components/AddCandidateDialog";
 import CandidateDetailDialog from "@/components/CandidateDetailDialog";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const MONTH_NAMES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+const YEAR = 2026;
+const ALL_MONTH_OPTIONS = MONTH_NAMES.map((name, i) => ({
+  value: `${YEAR}-${String(i + 1).padStart(2, "0")}`,
+  label: `${name} ${YEAR}`,
+}));
+
+function isInMonth(dateStr: string | undefined, monthKey: string): boolean {
+  if (!dateStr) return false;
+  return dateStr.startsWith(monthKey);
+}
 
 const Pipeline = () => {
   const { candidates, jobTitles, addCandidate, updateCandidateStage, addNoteToCandidate, deleteCandidate } = useAppContext();
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+
+  const now = new Date();
+  const currentMonthKey = `${YEAR}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey);
+
+  // Filter candidates by selected month (based on createdAt)
+  const filteredCandidates = useMemo(() => {
+    return candidates.filter((c) => isInMonth(c.createdAt, selectedMonth));
+  }, [candidates, selectedMonth]);
 
   const handleDragStart = (id: string) => setDraggedId(id);
   const handleDrop = (stageId: string) => {
@@ -27,17 +53,29 @@ const Pipeline = () => {
 
   return (
     <div className="space-y-6 animate-slide-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">Pipeline</h1>
           <p className="text-muted-foreground text-sm mt-1">Gerencie candidatos pelo processo seletivo</p>
         </div>
-        <AddCandidateDialog onAdd={addCandidate} jobs={jobTitles} />
+        <div className="flex items-center gap-3">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Mês" />
+            </SelectTrigger>
+            <SelectContent>
+              {ALL_MONTH_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <AddCandidateDialog onAdd={addCandidate} jobs={jobTitles} />
+        </div>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {PIPELINE_STAGES.map((stage) => {
-          const stageCandidates = candidates.filter((c) => c.stage === stage.id);
+          const stageCandidates = filteredCandidates.filter((c) => c.stage === stage.id);
           return (
             <div key={stage.id} className="kanban-column" onDragOver={handleDragOver} onDrop={() => handleDrop(stage.id)}>
               <div className="flex items-center justify-between mb-3 px-1">
