@@ -10,6 +10,9 @@ export interface Candidate {
   lastInteraction: string;
   notes: string;
   score?: number;
+  salary?: number;
+  hireDate?: string;
+  terminationDate?: string;
 }
 
 export interface Job {
@@ -39,6 +42,7 @@ export const PIPELINE_STAGES = [
   { id: "test", label: "Teste", color: "hsl(200, 70%, 50%)" },
   { id: "approved", label: "Aprovado", color: "hsl(152, 60%, 36%)" },
   { id: "rejected", label: "Reprovado", color: "hsl(0, 72%, 51%)" },
+  { id: "terminated", label: "Desligado", color: "hsl(0, 0%, 45%)" },
 ];
 
 export const mockCandidates: Candidate[] = [
@@ -52,6 +56,10 @@ export const mockCandidates: Candidate[] = [
   { id: "8", name: "Rafael Souza", phone: "(11) 92109-8765", email: "rafael@email.com", position: "Desenvolvedor Front-end", stage: "rejected", origin: "LinkedIn", recruiter: "João", lastInteraction: "Há 5 dias", notes: "Não atende requisitos técnicos" },
   { id: "9", name: "Camila Ferreira", phone: "(31) 91098-7654", email: "camila@email.com", position: "Product Manager", stage: "interview", origin: "Indicação", recruiter: "Maria", lastInteraction: "Hoje, 11:00", notes: "Segunda entrevista marcada" },
   { id: "10", name: "Bruno Alves", phone: "(11) 90987-6543", email: "bruno@email.com", position: "DevOps", stage: "new", origin: "WhatsApp", recruiter: "João", lastInteraction: "Hoje, 08:45", notes: "Primeiro contato feito" },
+  { id: "11", name: "Tatiana Reis", phone: "(11) 91111-2222", email: "tatiana@email.com", position: "Desenvolvedor Front-end", stage: "terminated", origin: "LinkedIn", recruiter: "Maria", lastInteraction: "Há 30 dias", notes: "Desligada após período de experiência", salary: 8500, hireDate: "2024-10-01", terminationDate: "2025-01-15" },
+  { id: "12", name: "Eduardo Martins", phone: "(21) 92222-3333", email: "eduardo@email.com", position: "Desenvolvedor Back-end", stage: "terminated", origin: "Indicação", recruiter: "João", lastInteraction: "Há 45 dias", notes: "Pediu demissão", salary: 9200, hireDate: "2024-08-15", terminationDate: "2025-02-28" },
+  { id: "13", name: "Priscila Nunes", phone: "(31) 93333-4444", email: "priscila@email.com", position: "Designer UX/UI", stage: "approved", origin: "LinkedIn", recruiter: "Maria", lastInteraction: "Há 10 dias", notes: "Contratada", salary: 7800, hireDate: "2025-01-10" },
+  { id: "14", name: "Gustavo Ribeiro", phone: "(11) 94444-5555", email: "gustavo@email.com", position: "DevOps", stage: "approved", origin: "WhatsApp", recruiter: "João", lastInteraction: "Há 15 dias", notes: "Contratado", salary: 11000, hireDate: "2025-02-01" },
 ];
 
 export const mockJobs: Job[] = [
