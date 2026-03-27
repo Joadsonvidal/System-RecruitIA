@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Phone, MoreHorizontal } from "lucide-react";
 import { PIPELINE_STAGES, type Candidate } from "@/data/mockData";
 import { useAppContext } from "@/contexts/AppContext";
+import { getTeamMembers } from "@/hooks/useTeamMembers";
 import AddCandidateDialog from "@/components/AddCandidateDialog";
 import CandidateDetailDialog from "@/components/CandidateDetailDialog";
 import { Button } from "@/components/ui/button";
@@ -28,15 +29,25 @@ const Pipeline = () => {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedRecruiter, setSelectedRecruiter] = useState<string>("all");
 
   const now = new Date();
   const currentMonthKey = `${YEAR}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey);
 
-  // Filter candidates by selected month (based on createdAt)
+  const recruiters = useMemo(() => {
+    const members = getTeamMembers();
+    return members.filter((m) => m.status === "ativo").map((m) => m.name).sort();
+  }, []);
+
+  // Filter candidates by selected month and recruiter
   const filteredCandidates = useMemo(() => {
-    return candidates.filter((c) => isInMonth(c.createdAt, selectedMonth));
-  }, [candidates, selectedMonth]);
+    return candidates.filter((c) => {
+      const matchMonth = isInMonth(c.createdAt, selectedMonth);
+      const matchRecruiter = selectedRecruiter === "all" || c.recruiter === selectedRecruiter;
+      return matchMonth && matchRecruiter;
+    });
+  }, [candidates, selectedMonth, selectedRecruiter]);
 
   const handleDragStart = (id: string) => setDraggedId(id);
   const handleDrop = (stageId: string) => {
@@ -66,6 +77,17 @@ const Pipeline = () => {
             <SelectContent>
               {ALL_MONTH_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedRecruiter} onValueChange={setSelectedRecruiter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Recrutador" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {recruiters.map((name) => (
+                <SelectItem key={name} value={name}>{name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
