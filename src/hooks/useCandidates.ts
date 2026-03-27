@@ -6,7 +6,7 @@ export const useCandidates = () => {
   const [jobs, setJobs] = useState<Job[]>(mockJobs);
 
   const addCandidate = (candidate: Candidate) => {
-    setCandidates((prev) => [candidate, ...prev]);
+    setCandidates((prev) => [{ ...candidate, createdAt: candidate.createdAt || new Date().toISOString().split("T")[0] }, ...prev]);
   };
 
   const updateCandidateStage = (id: string, stage: string) => {
