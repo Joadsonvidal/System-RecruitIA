@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Phone, MoreHorizontal } from "lucide-react";
 import { PIPELINE_STAGES, type Candidate } from "@/data/mockData";
 import { useAppContext } from "@/contexts/AppContext";
+import { getTeamMembers } from "@/hooks/useTeamMembers";
 import AddCandidateDialog from "@/components/AddCandidateDialog";
 import CandidateDetailDialog from "@/components/CandidateDetailDialog";
 import { Button } from "@/components/ui/button";
