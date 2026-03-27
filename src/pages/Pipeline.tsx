@@ -29,15 +29,25 @@ const Pipeline = () => {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedRecruiter, setSelectedRecruiter] = useState<string>("all");
 
   const now = new Date();
   const currentMonthKey = `${YEAR}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey);
 
-  // Filter candidates by selected month (based on createdAt)
+  const recruiters = useMemo(() => {
+    const members = getTeamMembers();
+    return members.filter((m) => m.status === "ativo").map((m) => m.name).sort();
+  }, []);
+
+  // Filter candidates by selected month and recruiter
   const filteredCandidates = useMemo(() => {
-    return candidates.filter((c) => isInMonth(c.createdAt, selectedMonth));
-  }, [candidates, selectedMonth]);
+    return candidates.filter((c) => {
+      const matchMonth = isInMonth(c.createdAt, selectedMonth);
+      const matchRecruiter = selectedRecruiter === "all" || c.recruiter === selectedRecruiter;
+      return matchMonth && matchRecruiter;
+    });
+  }, [candidates, selectedMonth, selectedRecruiter]);
 
   const handleDragStart = (id: string) => setDraggedId(id);
   const handleDrop = (stageId: string) => {
