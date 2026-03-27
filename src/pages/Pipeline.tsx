@@ -80,6 +80,17 @@ const Pipeline = () => {
               ))}
             </SelectContent>
           </Select>
+          <Select value={selectedRecruiter} onValueChange={setSelectedRecruiter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Recrutador" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {recruiters.map((name) => (
+                <SelectItem key={name} value={name}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <AddCandidateDialog onAdd={addCandidate} jobs={jobTitles} />
         </div>
       </div>
