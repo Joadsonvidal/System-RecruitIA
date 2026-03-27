@@ -13,6 +13,7 @@ export interface Candidate {
   salary?: number;
   hireDate?: string;
   terminationDate?: string;
+  createdAt?: string;
 }
 
 export interface Job {
