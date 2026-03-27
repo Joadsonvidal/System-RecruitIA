@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Users, Briefcase, Calendar, UserPlus, ArrowRight, UserMinus, DollarSign, Filter, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { Users, Briefcase, Calendar, UserPlus, ArrowRight, UserMinus, DollarSign, Filter, Plus, Trash2, Pencil, Check, X, CalendarDays } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { PIPELINE_STAGES } from "@/data/mockData";
 import { getTeamMembers } from "@/hooks/useTeamMembers";
@@ -14,16 +14,58 @@ import { Input } from "@/components/ui/input";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
 
+const MONTH_NAMES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+/** Build a list of year-month options from the data + always include current month */
+function buildMonthOptions(candidates: { createdAt?: string; hireDate?: string; terminationDate?: string }[], jobs: { createdAt: string }[]) {
+  const set = new Set<string>();
+  const now = new Date();
+  set.add(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`);
+
+  candidates.forEach((c) => {
+    [c.createdAt, c.hireDate, c.terminationDate].forEach((d) => {
+      if (d) set.add(d.slice(0, 7));
+    });
+  });
+  jobs.forEach((j) => {
+    if (j.createdAt) set.add(j.createdAt.slice(0, 7));
+  });
+
+  return Array.from(set)
+    .sort()
+    .reverse()
+    .map((key) => {
+      const [y, m] = key.split("-");
+      return { value: key, label: `${MONTH_NAMES[parseInt(m, 10) - 1]} ${y}` };
+    });
+}
+
+/** Check if a date string (YYYY-MM-DD) belongs to a year-month key (YYYY-MM) */
+function isInMonth(dateStr: string | undefined, monthKey: string): boolean {
+  if (!dateStr) return false;
+  return dateStr.startsWith(monthKey);
+}
+
 const Dashboard = () => {
   const { candidates, jobs, jobTitles, addCandidate, updateCandidate, deleteCandidate } = useAppContext();
+
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
   const [selectedRecruiter, setSelectedRecruiter] = useState<string>("all");
-  const [selectedMonth, setSelectedMonth] = useState<string>(String(new Date().getMonth()));
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey);
 
   // Connect recruiters to team members
   const recruiters = useMemo(() => {
     const members = getTeamMembers();
     return members.filter((m) => m.status === "ativo").map((m) => m.name).sort();
   }, []);
+
+  // Month options derived from all data
+  const monthOptions = useMemo(() => buildMonthOptions(candidates, jobs), [candidates, jobs]);
 
   // --- Desligados dialog state ---
   const [addTermOpen, setAddTermOpen] = useState(false);
@@ -34,14 +76,45 @@ const Dashboard = () => {
   const [editingPayroll, setEditingPayroll] = useState<string | null>(null);
   const [editSalary, setEditSalary] = useState("");
 
-  // Filtered candidates by recruiter
-  const filtered = useMemo(() => {
+  // ===== CORE FILTERED DATA =====
+  // Step 1: Filter by recruiter
+  const byRecruiter = useMemo(() => {
     if (selectedRecruiter === "all") return candidates;
     return candidates.filter((c) => c.recruiter === selectedRecruiter);
   }, [candidates, selectedRecruiter]);
 
+  // Step 2: Filter by month — candidates whose createdAt falls in selected month
+  const filtered = useMemo(() => {
+    return byRecruiter.filter((c) => isInMonth(c.createdAt, selectedMonth));
+  }, [byRecruiter, selectedMonth]);
+
+  // Jobs filtered by month (createdAt)
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((j) => isInMonth(j.createdAt, selectedMonth));
+  }, [jobs, selectedMonth]);
+
+  // Terminated in selected month (by terminationDate)
+  const terminatedInMonth = useMemo(() => {
+    return byRecruiter.filter((c) => c.stage === "terminated" && isInMonth(c.terminationDate, selectedMonth));
+  }, [byRecruiter, selectedMonth]);
+
+  // Hired (approved) in selected month (by hireDate)
+  const hiredInMonth = useMemo(() => {
+    return byRecruiter.filter((c) => c.stage === "approved" && isInMonth(c.hireDate, selectedMonth));
+  }, [byRecruiter, selectedMonth]);
+
+  // Payroll: active employees (approved) with salary who were hired on or before end of selected month
+  const payrollInMonth = useMemo(() => {
+    const endOfMonth = `${selectedMonth}-31`;
+    return byRecruiter.filter((c) => {
+      if (!c.salary) return false;
+      if (c.stage === "approved" && c.hireDate && c.hireDate <= endOfMonth) return true;
+      if (c.stage === "terminated" && c.hireDate && c.hireDate <= endOfMonth && c.terminationDate && c.terminationDate >= `${selectedMonth}-01`) return true;
+      return false;
+    });
+  }, [byRecruiter, selectedMonth]);
+
   const interviewCandidates = filtered.filter((c) => c.stage === "interview");
-  const terminatedCandidates = filtered.filter((c) => c.stage === "terminated");
 
   const stageCounts = PIPELINE_STAGES.map((stage) => ({
     ...stage,
@@ -49,11 +122,11 @@ const Dashboard = () => {
   }));
 
   const stats = [
-    { label: "Candidatos Ativos", value: filtered.length, icon: Users, color: "text-primary" },
-    { label: "Vagas Abertas", value: jobs.filter((j) => j.status === "open").length, icon: Briefcase, color: "text-info" },
+    { label: "Candidatos no Mês", value: filtered.length, icon: Users, color: "text-primary" },
+    { label: "Vagas Abertas", value: filteredJobs.filter((j) => j.status === "open").length, icon: Briefcase, color: "text-info" },
     { label: "Em Entrevista", value: interviewCandidates.length, icon: Calendar, color: "text-accent-foreground" },
-    { label: "Desligados", value: terminatedCandidates.length, icon: UserMinus, color: "text-destructive" },
-    { label: "Candidatos Novos", value: filtered.filter((c) => c.stage === "new").length, icon: UserPlus, color: "text-primary" },
+    { label: "Desligados no Mês", value: terminatedInMonth.length, icon: UserMinus, color: "text-destructive" },
+    { label: "Contratados no Mês", value: hiredInMonth.length, icon: UserPlus, color: "text-primary" },
   ];
 
   const recentCandidates = filtered.filter((c) => c.stage === "new").slice(0, 5);
@@ -91,22 +164,21 @@ const Dashboard = () => {
   // Payroll data for chart
   const payrollByRecruiter = useMemo(() => {
     const data: Record<string, { name: string; total: number; count: number }> = {};
-    const allWithSalary = candidates.filter((c) => c.salary && (c.stage === "approved" || c.stage === "terminated"));
-    allWithSalary.forEach((c) => {
+    payrollInMonth.forEach((c) => {
       if (!data[c.recruiter]) data[c.recruiter] = { name: c.recruiter, total: 0, count: 0 };
       data[c.recruiter].total += c.salary!;
       data[c.recruiter].count += 1;
     });
     return Object.values(data);
-  }, [candidates]);
+  }, [payrollInMonth]);
 
-  // Interview stats per recruiter for chart
+  // Interview stats per recruiter for chart (filtered by month)
   const interviewsByRecruiter = useMemo(() => {
     const data: Record<string, { name: string; entrevistas: number; aprovados: number; desligados: number }> = {};
     recruiters.forEach((r) => {
       data[r] = { name: r, entrevistas: 0, aprovados: 0, desligados: 0 };
     });
-    candidates.forEach((c) => {
+    filtered.forEach((c) => {
       if (data[c.recruiter]) {
         if (c.stage === "interview") data[c.recruiter].entrevistas += 1;
         if (c.stage === "approved") data[c.recruiter].aprovados += 1;
@@ -114,10 +186,12 @@ const Dashboard = () => {
       }
     });
     return Object.values(data);
-  }, [candidates, recruiters]);
+  }, [filtered, recruiters]);
 
-  // Payroll candidates (approved + terminated with salary)
-  const payrollCandidates = candidates.filter((c) => c.salary && (c.stage === "approved" || c.stage === "terminated"));
+  // Total active payroll for selected month
+  const totalActivePayroll = payrollInMonth
+    .filter((c) => c.stage === "approved")
+    .reduce((sum, c) => sum + (c.salary || 0), 0);
 
   return (
     <div className="space-y-6 animate-slide-in">
@@ -127,7 +201,22 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground text-sm mt-1">Visão geral do seu recrutamento</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Monthly Filter */}
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Mês" />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Recruiter Filter */}
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select value={selectedRecruiter} onValueChange={setSelectedRecruiter}>
@@ -208,7 +297,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-2">
               <UserMinus className="h-5 w-5 text-destructive" />
               <h2 className="font-semibold">Desligados</h2>
-              <span className="text-sm font-bold text-destructive">({terminatedCandidates.length})</span>
+              <span className="text-sm font-bold text-destructive">({terminatedInMonth.length})</span>
             </div>
             <Dialog open={addTermOpen} onOpenChange={setAddTermOpen}>
               <DialogTrigger asChild>
@@ -244,10 +333,10 @@ const Dashboard = () => {
             </Dialog>
           </div>
           <div className="space-y-3 max-h-[320px] overflow-auto">
-            {terminatedCandidates.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum desligamento registrado.</p>
+            {terminatedInMonth.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum desligamento neste mês.</p>
             ) : (
-              terminatedCandidates.map((c) => (
+              terminatedInMonth.map((c) => (
                 <div key={c.id} className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/10">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-destructive/10 text-destructive flex items-center justify-center text-sm font-semibold">
@@ -302,7 +391,7 @@ const Dashboard = () => {
           </div>
           <div className="space-y-3">
             {recentCandidates.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum candidato novo.</p>
+              <p className="text-sm text-muted-foreground">Nenhum candidato novo neste mês.</p>
             ) : (
               recentCandidates.map((candidate) => (
                 <div key={candidate.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -328,7 +417,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-primary" />
-            <h2 className="font-semibold">Folha de Pagamento — Comparação Mensal</h2>
+            <h2 className="font-semibold">Folha de Pagamento — {monthOptions.find((o) => o.value === selectedMonth)?.label || selectedMonth}</h2>
           </div>
         </div>
 
@@ -347,7 +436,7 @@ const Dashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payrollCandidates.map((c) => (
+                {payrollInMonth.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.name}</TableCell>
                     <TableCell className="text-muted-foreground">{c.position}</TableCell>
@@ -399,14 +488,18 @@ const Dashboard = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+                {payrollInMonth.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                      Nenhum registro de folha para este mês.
+                    </TableCell>
+                  </TableRow>
+                )}
                 {/* Totals */}
                 <TableRow className="border-t-2">
                   <TableCell colSpan={3} className="font-bold">Total Folha Ativa</TableCell>
                   <TableCell className="text-right font-bold text-primary">
-                    {candidates
-                      .filter((c) => c.salary && c.stage === "approved")
-                      .reduce((sum, c) => sum + (c.salary || 0), 0)
-                      .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    {totalActivePayroll.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                   </TableCell>
                   <TableCell colSpan={2} />
                 </TableRow>
@@ -443,7 +536,7 @@ const Dashboard = () => {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {jobs.filter((j) => j.status === "open").slice(0, 6).map((job) => (
+          {filteredJobs.filter((j) => j.status === "open").slice(0, 6).map((job) => (
             <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <div>
                 <p className="text-sm font-medium">{job.title}</p>
@@ -452,6 +545,9 @@ const Dashboard = () => {
               <span className="text-xs font-medium text-primary">{job.candidates} candidatos</span>
             </div>
           ))}
+          {filteredJobs.filter((j) => j.status === "open").length === 0 && (
+            <p className="text-sm text-muted-foreground col-span-2">Nenhuma vaga aberta neste mês.</p>
+          )}
         </div>
       </div>
     </div>
