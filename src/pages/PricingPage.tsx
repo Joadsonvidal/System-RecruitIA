@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 const plans = [
   {
     name: "Starter",
-    price: "197",
+    price: "1.437",
     icon: Zap,
     popular: false,
     url: "https://pay.kiwify.com.br/AGgZs7x",
@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "237",
+    price: "1.497",
     icon: Star,
     popular: true,
     url: "https://pay.kiwify.com.br/RTJHZ38",
@@ -34,7 +34,7 @@ const plans = [
   },
   {
     name: "Business",
-    price: "297",
+    price: "1.523",
     icon: Building2,
     popular: false,
     url: "https://pay.kiwify.com.br/fqFOJ5M",
