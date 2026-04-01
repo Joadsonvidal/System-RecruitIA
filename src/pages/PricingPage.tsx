@@ -22,7 +22,7 @@ const plans = [
     price: "1.497",
     icon: Star,
     popular: true,
-    url: "https://pay.kiwify.com.br/RTJHZ38",
+    url: "https://pay.kiwify.com.br/5f8M5ab",
     features: [
       "5 usuários",
       "Vagas ilimitadas",
