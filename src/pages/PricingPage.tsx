@@ -8,7 +8,7 @@ const plans = [
     price: "1.437",
     icon: Zap,
     popular: false,
-    url: "https://pay.kiwify.com.br/AGgZs7x",
+    url: "https://pay.kiwify.com.br/TmtEOKX",
     features: [
       "1 usuário",
       "Até 10 vagas ativas",
@@ -22,7 +22,7 @@ const plans = [
     price: "1.497",
     icon: Star,
     popular: true,
-    url: "https://pay.kiwify.com.br/RTJHZ38",
+    url: "https://pay.kiwify.com.br/5f8M5ab",
     features: [
       "5 usuários",
       "Vagas ilimitadas",
@@ -37,7 +37,7 @@ const plans = [
     price: "1.523",
     icon: Building2,
     popular: false,
-    url: "https://pay.kiwify.com.br/fqFOJ5M",
+    url: "https://pay.kiwify.com.br/xzTfdO9",
     features: [
       "Usuários ilimitados",
       "Tudo do Pro",
