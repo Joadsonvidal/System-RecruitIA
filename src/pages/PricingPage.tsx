@@ -37,7 +37,7 @@ const plans = [
     price: "1.523",
     icon: Building2,
     popular: false,
-    url: "https://pay.kiwify.com.br/fqFOJ5M",
+    url: "https://pay.kiwify.com.br/xzTfdO9",
     features: [
       "Usuários ilimitados",
       "Tudo do Pro",
