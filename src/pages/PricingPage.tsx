@@ -8,7 +8,7 @@ const plans = [
     price: "1.437",
     icon: Zap,
     popular: false,
-    url: "https://pay.kiwify.com.br/AGgZs7x",
+    url: "https://pay.kiwify.com.br/TmtEOKX",
     features: [
       "1 usuário",
       "Até 10 vagas ativas",
