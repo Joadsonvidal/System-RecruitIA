@@ -27,9 +27,9 @@ const AppSidebar = () => {
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-[240px] flex-col bg-sidebar border-r border-sidebar-border">
       <div className="flex items-center gap-2.5 px-5 py-5">
-        <img src={logo} alt="ZapRecruit" className="h-8 w-8" />
+        <img src={logo} alt="SystemrecruitIA" className="h-8 w-8" />
         <span className="text-lg font-bold text-sidebar-primary-foreground">
-          Zap<span className="text-sidebar-primary">Recruit</span>
+          Systemrecruit<span className="text-sidebar-primary">IA</span>
         </span>
       </div>
 

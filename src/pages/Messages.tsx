@@ -72,7 +72,7 @@ const Messages = () => {
         </div>
         <h2 className="text-lg font-semibold mb-2">Conecte seu WhatsApp</h2>
         <p className="text-sm text-muted-foreground text-center max-w-md mb-6">
-          Integre seu WhatsApp Business para enviar e receber mensagens dos candidatos diretamente pelo ZapRecruit.
+          Integre seu WhatsApp Business para enviar e receber mensagens dos candidatos diretamente pelo SystemrecruitIA.
         </p>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
