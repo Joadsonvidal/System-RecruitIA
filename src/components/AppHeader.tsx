@@ -1,4 +1,6 @@
-import { Bell, Search, Check } from "lucide-react";
+import { Bell, Search, Check, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +17,16 @@ import { toast } from "sonner";
 const AppHeader = () => {
   const { name, updateName } = useProfile();
   const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const [editName, setEditName] = useState(name);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+    toast.success("Sessão encerrada");
+  };
 
   const handleSaveName = () => {
     if (!editName.trim()) return;
@@ -103,6 +113,10 @@ const AppHeader = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
     </header>
   );
