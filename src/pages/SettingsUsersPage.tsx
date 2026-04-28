@@ -9,11 +9,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { type TeamMember, getTeamMembers } from "@/hooks/useTeamMembers";
-
-const STORAGE_KEY = "zr_team_members";
+import { type TeamMember, useTeamMembers } from "@/hooks/useTeamMembers";
 
 const roleColors: Record<string, string> = {
   admin: "bg-destructive/10 text-destructive",
@@ -22,25 +20,18 @@ const roleColors: Record<string, string> = {
 };
 
 const SettingsUsersPage = () => {
-  const [members, setMembers] = useState<TeamMember[]>(getTeamMembers);
+  const { members, addMember: addM, updateMember, deleteMember } = useTeamMembers();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TeamMember["role"]>("recrutador");
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
-  }, [members]);
-
-  const addMember = () => {
+  const addMember = async () => {
     if (!name.trim() || !email.trim()) {
       toast.error("Preencha nome e email");
       return;
     }
-    setMembers((prev) => [
-      { id: Date.now().toString(), name: name.trim(), email: email.trim(), role, status: "ativo" },
-      ...prev,
-    ]);
+    await addM({ name: name.trim(), email: email.trim(), role, status: "ativo" });
     setName("");
     setEmail("");
     setRole("recrutador");
@@ -48,17 +39,15 @@ const SettingsUsersPage = () => {
     toast.success("Membro adicionado com sucesso!");
   };
 
-  const removeMember = (id: string) => {
-    setMembers((prev) => prev.filter((m) => m.id !== id));
+  const removeMember = async (id: string) => {
+    await deleteMember(id);
     toast.success("Membro removido");
   };
 
-  const toggleStatus = (id: string) => {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === id ? { ...m, status: m.status === "ativo" ? "inativo" : "ativo" } : m
-      )
-    );
+  const toggleStatus = async (id: string) => {
+    const m = members.find((x) => x.id === id);
+    if (!m) return;
+    await updateMember(id, { status: m.status === "ativo" ? "inativo" : "ativo" });
   };
 
   return (
