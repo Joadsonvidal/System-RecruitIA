@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string | null
+          hire_date: string | null
           id: string
           last_interaction: string | null
           name: string
@@ -26,13 +27,17 @@ export type Database = {
           phone: string
           position: string
           recruiter: string
+          salary: number | null
           score: number | null
           stage: string
+          termination_date: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           email?: string | null
+          hire_date?: string | null
           id?: string
           last_interaction?: string | null
           name: string
@@ -41,13 +46,17 @@ export type Database = {
           phone: string
           position: string
           recruiter?: string
+          salary?: number | null
           score?: number | null
           stage?: string
+          termination_date?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           email?: string | null
+          hire_date?: string | null
           id?: string
           last_interaction?: string | null
           name?: string
@@ -56,9 +65,12 @@ export type Database = {
           phone?: string
           position?: string
           recruiter?: string
+          salary?: number | null
           score?: number | null
           stage?: string
+          termination_date?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -72,6 +84,7 @@ export type Database = {
           time: string
           type: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           candidate_name: string
@@ -82,6 +95,7 @@ export type Database = {
           time: string
           type?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           candidate_name?: string
@@ -92,11 +106,13 @@ export type Database = {
           time?: string
           type?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
       jobs: {
         Row: {
+          candidates_count: number
           created_at: string
           department: string
           id: string
@@ -105,8 +121,10 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
+          candidates_count?: number
           created_at?: string
           department: string
           id?: string
@@ -115,8 +133,10 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
+          candidates_count?: number
           created_at?: string
           department?: string
           id?: string
@@ -125,6 +145,34 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -137,6 +185,7 @@ export type Database = {
           role: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -146,6 +195,7 @@ export type Database = {
           role?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -155,6 +205,7 @@ export type Database = {
           role?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
