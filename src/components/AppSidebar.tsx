@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Settings,
   Zap,
+  Clock,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -18,6 +19,7 @@ const navItems = [
   { path: "/jobs", icon: Briefcase, label: "Vagas" },
   { path: "/calendar", icon: Calendar, label: "Agenda" },
   { path: "/messages", icon: MessageSquare, label: "Conversas" },
+  { path: "/ponto/admin", icon: Clock, label: "Ponto" },
   { path: "/settings", icon: Settings, label: "Configurações" },
 ];
 

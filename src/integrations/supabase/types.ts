@@ -209,15 +209,111 @@ export type Database = {
         }
         Relationships: []
       }
+      time_clock_entries: {
+        Row: {
+          account_owner_id: string
+          address: string | null
+          clocked_at: string
+          created_at: string
+          device_info: string | null
+          distance_meters: number | null
+          entry_type: Database["public"]["Enums"]["time_clock_entry_type"]
+          id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          selfie_url: string | null
+          user_id: string
+          within_geofence: boolean
+        }
+        Insert: {
+          account_owner_id: string
+          address?: string | null
+          clocked_at?: string
+          created_at?: string
+          device_info?: string | null
+          distance_meters?: number | null
+          entry_type: Database["public"]["Enums"]["time_clock_entry_type"]
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          selfie_url?: string | null
+          user_id: string
+          within_geofence?: boolean
+        }
+        Update: {
+          account_owner_id?: string
+          address?: string | null
+          clocked_at?: string
+          created_at?: string
+          device_info?: string | null
+          distance_meters?: number | null
+          entry_type?: Database["public"]["Enums"]["time_clock_entry_type"]
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          selfie_url?: string | null
+          user_id?: string
+          within_geofence?: boolean
+        }
+        Relationships: []
+      }
+      time_clock_settings: {
+        Row: {
+          allowed_radius_meters: number
+          created_at: string
+          enforce_geofence: boolean
+          id: string
+          office_address: string | null
+          office_latitude: number | null
+          office_longitude: number | null
+          owner_id: string
+          require_selfie: boolean
+          updated_at: string
+          workday_end: string
+          workday_start: string
+        }
+        Insert: {
+          allowed_radius_meters?: number
+          created_at?: string
+          enforce_geofence?: boolean
+          id?: string
+          office_address?: string | null
+          office_latitude?: number | null
+          office_longitude?: number | null
+          owner_id: string
+          require_selfie?: boolean
+          updated_at?: string
+          workday_end?: string
+          workday_start?: string
+        }
+        Update: {
+          allowed_radius_meters?: number
+          created_at?: string
+          enforce_geofence?: boolean
+          id?: string
+          office_address?: string | null
+          office_latitude?: number | null
+          office_longitude?: number | null
+          owner_id?: string
+          require_selfie?: boolean
+          updated_at?: string
+          workday_end?: string
+          workday_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_server_time: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      time_clock_entry_type: "entrada" | "saida"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -344,6 +440,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      time_clock_entry_type: ["entrada", "saida"],
+    },
   },
 } as const
