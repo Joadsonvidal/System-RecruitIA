@@ -18,6 +18,8 @@ import SettingsPage from "./pages/SettingsPage";
 import SettingsUsersPage from "./pages/SettingsUsersPage";
 import SettingsPermissionsPage from "./pages/SettingsPermissionsPage";
 import PricingPage from "./pages/PricingPage";
+import TimeClockPage from "./pages/TimeClockPage";
+import TimeClockAdminPage from "./pages/TimeClockAdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -34,6 +36,14 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route
+              path="/ponto"
+              element={
+                <ProtectedRoute>
+                  <TimeClockPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               element={
                 <ProtectedRoute>
                   <AppProvider>
@@ -42,6 +52,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
+              <Route path="/ponto/admin" element={<TimeClockAdminPage />} />
               <Route path="/" element={<Dashboard />} />
               <Route path="/pipeline" element={<Pipeline />} />
               <Route path="/candidates" element={<Candidates />} />
