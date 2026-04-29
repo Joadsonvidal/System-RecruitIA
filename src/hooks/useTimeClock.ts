@@ -133,7 +133,8 @@ export const useTimeClock = () => {
       .from("time-clock-selfies")
       .upload(fileName, blob, { contentType: "image/jpeg", upsert: false });
     if (error) {
-      console.error("upload selfie", error);
+      // Bucket pode ainda não existir — não bloqueia a batida
+      console.warn("Selfie upload skipped:", error.message);
       return null;
     }
     return fileName;
