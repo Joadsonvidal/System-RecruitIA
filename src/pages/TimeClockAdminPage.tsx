@@ -175,7 +175,7 @@ const TimeClockAdminPage = () => {
                           {d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                         </td>
                         <td className="p-3 font-mono text-xs">{e.user_id.slice(0, 8)}…</td>
-                        <td className="p-3 capitalize">{e.entry_type}</td>
+                        <td className="p-3">{TYPE_LABEL[e.entry_type] ?? e.entry_type}</td>
                         <td className="p-3 text-xs max-w-xs truncate" title={e.address ?? ""}>
                           {e.address || `${e.latitude}, ${e.longitude}`}
                         </td>
