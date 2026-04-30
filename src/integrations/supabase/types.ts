@@ -313,7 +313,11 @@ export type Database = {
       get_server_time: { Args: never; Returns: string }
     }
     Enums: {
-      time_clock_entry_type: "entrada" | "saida"
+      time_clock_entry_type:
+        | "entrada"
+        | "saida"
+        | "saida_almoco"
+        | "retorno_almoco"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -441,7 +445,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      time_clock_entry_type: ["entrada", "saida"],
+      time_clock_entry_type: [
+        "entrada",
+        "saida",
+        "saida_almoco",
+        "retorno_almoco",
+      ],
     },
   },
 } as const
