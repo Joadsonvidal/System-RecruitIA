@@ -148,7 +148,7 @@ export const useTimeClock = () => {
   };
 
   const clockIn = async (params: {
-    entryType: "entrada" | "saida";
+    entryType: "entrada" | "saida_almoco" | "retorno_almoco" | "saida";
     latitude: number;
     longitude: number;
     selfieBlob?: Blob;
