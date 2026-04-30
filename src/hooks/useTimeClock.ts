@@ -19,7 +19,7 @@ export interface TimeClockEntry {
   id: string;
   user_id: string;
   account_owner_id: string;
-  entry_type: "entrada" | "saida";
+  entry_type: "entrada" | "saida_almoco" | "retorno_almoco" | "saida";
   clocked_at: string;
   latitude: number | null;
   longitude: number | null;
@@ -148,7 +148,7 @@ export const useTimeClock = () => {
   };
 
   const clockIn = async (params: {
-    entryType: "entrada" | "saida";
+    entryType: "entrada" | "saida_almoco" | "retorno_almoco" | "saida";
     latitude: number;
     longitude: number;
     selfieBlob?: Blob;
