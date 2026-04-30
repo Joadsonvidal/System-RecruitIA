@@ -124,6 +124,7 @@ const TimeClockAdminPage = () => {
       <Tabs defaultValue="entries">
         <TabsList>
           <TabsTrigger value="entries">Batidas</TabsTrigger>
+          <TabsTrigger value="sheet">Espelho de Ponto</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
 
