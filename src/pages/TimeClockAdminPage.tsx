@@ -25,6 +25,29 @@ const TimeClockAdminPage = () => {
   const [saving, setSaving] = useState(false);
   const [filterUser, setFilterUser] = useState("");
   const [openSelfie, setOpenSelfie] = useState<string | null>(null);
+  const today = new Date();
+  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth());
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
+
+  const usersList = useMemo(() => {
+    const map = new Map<string, number>();
+    entries.forEach((e) => map.set(e.user_id, (map.get(e.user_id) ?? 0) + 1));
+    return Array.from(map.entries());
+  }, [entries]);
+
+  const sheetUserId = selectedUser || usersList[0]?.[0] || "";
+  const sheetEntries = useMemo(
+    () => entries.filter((e) => e.user_id === sheetUserId),
+    [entries, sheetUserId],
+  );
+  const sheet = useMemo(
+    () => buildMonthlyTimeSheet(sheetEntries, selectedYear, selectedMonth, {
+      workdayStart: settings.workday_start,
+      workdayEnd: settings.workday_end,
+    }),
+    [sheetEntries, selectedYear, selectedMonth, settings.workday_start, settings.workday_end],
+  );
 
   // Keep form in sync when settings load
   useMemo(() => setForm(settings), [settings.id]);
