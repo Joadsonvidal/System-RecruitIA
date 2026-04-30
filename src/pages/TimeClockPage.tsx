@@ -1,11 +1,40 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useTimeClock } from "@/hooks/useTimeClock";
+import { useTimeClock, type TimeClockEntry } from "@/hooks/useTimeClock";
 import { useAuth } from "@/hooks/useAuth";
-import { LogIn, LogOut, MapPin, Camera, Loader2, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
+import {
+  LogIn, LogOut, MapPin, Camera, Loader2, CheckCircle2,
+  AlertTriangle, Clock, UtensilsCrossed, Coffee, FileDown,
+} from "lucide-react";
 import { toast } from "sonner";
+import { exportTimeSheetPDF, buildMonthlyTimeSheet } from "@/lib/timeSheet";
+
+type EntryType = "entrada" | "saida_almoco" | "retorno_almoco" | "saida";
+
+const SEQUENCE: EntryType[] = ["entrada", "saida_almoco", "retorno_almoco", "saida"];
+
+const LABELS: Record<EntryType, string> = {
+  entrada: "Bater Entrada",
+  saida_almoco: "Saída para Almoço",
+  retorno_almoco: "Retorno do Almoço",
+  saida: "Bater Saída",
+};
+
+const SHORT: Record<EntryType, string> = {
+  entrada: "1ª Entrada",
+  saida_almoco: "1ª Saída",
+  retorno_almoco: "2ª Entrada",
+  saida: "2ª Saída",
+};
+
+const ICON: Record<EntryType, React.ComponentType<{ className?: string }>> = {
+  entrada: LogIn,
+  saida_almoco: UtensilsCrossed,
+  retorno_almoco: Coffee,
+  saida: LogOut,
+};
 
 const weekdays = [
   "Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira",
@@ -24,20 +53,18 @@ const TimeClockPage = () => {
   const [serverOffset, setServerOffset] = useState(0);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"idle" | "selfie" | "submitting">("idle");
-  const [pendingType, setPendingType] = useState<"entrada" | "saida" | null>(null);
+  const [pendingType, setPendingType] = useState<EntryType | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [coordsError, setCoordsError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Sync clock with server
   useEffect(() => {
     getServerTime().then((s) => setServerOffset(s.getTime() - Date.now()));
     const t = setInterval(() => setNow(new Date(Date.now() + serverOffset)), 1000);
     return () => clearInterval(t);
   }, [serverOffset]);
 
-  // Get geolocation
   useEffect(() => {
     if (!navigator.geolocation) {
       setCoordsError("Geolocalização não suportada neste dispositivo.");
@@ -54,26 +81,21 @@ const TimeClockPage = () => {
     return () => navigator.geolocation.clearWatch(watcher);
   }, []);
 
-  // Stop camera on cleanup
-  useEffect(() => {
-    return () => {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
+  useEffect(() => () => { streamRef.current?.getTracks().forEach((t) => t.stop()); }, []);
 
   const today = now;
   const todayEntries = myEntries.filter((e) => {
     const d = new Date(e.clocked_at);
-    return (
-      d.getDate() === today.getDate() &&
-      d.getMonth() === today.getMonth() &&
-      d.getFullYear() === today.getFullYear()
-    );
+    return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
   });
 
-  const lastEntry = todayEntries[0];
-  const nextType: "entrada" | "saida" =
-    !lastEntry || lastEntry.entry_type === "saida" ? "entrada" : "saida";
+  // Next type = primeiro da sequência que ainda não foi batido hoje
+  const nextType: EntryType | null = useMemo(() => {
+    for (const t of SEQUENCE) {
+      if (!todayEntries.some((e) => e.entry_type === t)) return t;
+    }
+    return null;
+  }, [todayEntries]);
 
   const startCamera = async () => {
     try {
@@ -86,7 +108,7 @@ const TimeClockPage = () => {
         await videoRef.current.play();
       }
     } catch {
-      toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
+      toast.error("Não foi possível acessar a câmera.");
       setStep("idle");
       setPendingType(null);
     }
@@ -105,11 +127,8 @@ const TimeClockPage = () => {
       canvas.toBlob((b) => resolve(b), "image/jpeg", 0.85);
     });
 
-  const handleClockClick = async (type: "entrada" | "saida") => {
-    if (!coords) {
-      toast.error("Aguarde a localização ser obtida.");
-      return;
-    }
+  const handleClockClick = async (type: EntryType) => {
+    if (!coords) return toast.error("Aguarde a localização ser obtida.");
     setPendingType(type);
     if (settings.require_selfie) {
       setStep("selfie");
@@ -119,7 +138,7 @@ const TimeClockPage = () => {
     }
   };
 
-  const submit = async (type: "entrada" | "saida", selfieBlob: Blob | null) => {
+  const submit = async (type: EntryType, selfieBlob: Blob | null) => {
     if (!coords) return;
     setStep("submitting");
     setLoading(true);
@@ -133,25 +152,16 @@ const TimeClockPage = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
 
-    if (result.error) {
-      toast.error("Erro: " + result.error);
-    } else if (!result.withinGeofence) {
-      toast.warning(
-        `Ponto registrado FORA do local permitido (${result.distance}m de distância).`,
-      );
-    } else {
-      toast.success(`${type === "entrada" ? "Entrada" : "Saída"} registrada com sucesso!`);
-    }
+    if (result.error) toast.error("Erro: " + result.error);
+    else if (!result.withinGeofence) toast.warning(`Ponto registrado FORA do local (${result.distance}m).`);
+    else toast.success(`${SHORT[type]} registrada!`);
     setStep("idle");
     setPendingType(null);
   };
 
   const confirmSelfie = async () => {
     const blob = await captureSelfie();
-    if (!blob || !pendingType) {
-      toast.error("Falha ao capturar selfie.");
-      return;
-    }
+    if (!blob || !pendingType) return toast.error("Falha ao capturar selfie.");
     submit(pendingType, blob);
   };
 
@@ -162,22 +172,34 @@ const TimeClockPage = () => {
     setPendingType(null);
   };
 
+  const handleExportPDF = () => {
+    const sheet = buildMonthlyTimeSheet(myEntries, today.getFullYear(), today.getMonth(), {
+      workdayStart: settings.workday_start,
+      workdayEnd: settings.workday_end,
+    });
+    exportTimeSheetPDF({
+      employeeName: user?.email?.split("@")[0] ?? "Colaborador",
+      employeeEmail: user?.email ?? "",
+      monthLabel: today.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
+      rows: sheet.rows,
+    });
+  };
+
+  const NextIcon = nextType ? ICON[nextType] : CheckCircle2;
+  const isExit = nextType === "saida" || nextType === "saida_almoco";
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-md space-y-4">
-        {/* Header / clock */}
         <Card className="p-6 text-center bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <p className="text-sm text-muted-foreground">{weekdays[today.getDay()]}</p>
           <p className="text-base font-medium">{formatDate(today)}</p>
-          <p className="mt-2 text-5xl font-bold tabular-nums tracking-tight">
-            {formatTime(today)}
-          </p>
+          <p className="mt-2 text-5xl font-bold tabular-nums tracking-tight">{formatTime(today)}</p>
           <p className="mt-1 text-xs text-muted-foreground flex items-center justify-center gap-1">
             <Clock className="h-3 w-3" /> Hora oficial do servidor
           </p>
         </Card>
 
-        {/* Location card */}
         <Card className="p-4">
           <div className="flex items-start gap-3">
             <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
@@ -198,22 +220,14 @@ const TimeClockPage = () => {
           </div>
         </Card>
 
-        {/* Selfie modal-ish step */}
         {step === "selfie" && (
           <Card className="p-4 space-y-3">
             <p className="text-sm font-medium flex items-center gap-2">
-              <Camera className="h-4 w-4" /> Tire uma selfie para confirmar
+              <Camera className="h-4 w-4" /> Selfie para {pendingType && SHORT[pendingType]}
             </p>
-            <video
-              ref={videoRef}
-              className="w-full rounded-lg bg-black aspect-[4/3] object-cover"
-              playsInline
-              muted
-            />
+            <video ref={videoRef} className="w-full rounded-lg bg-black aspect-[4/3] object-cover" playsInline muted />
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={cancelSelfie}>
-                Cancelar
-              </Button>
+              <Button variant="outline" className="flex-1" onClick={cancelSelfie}>Cancelar</Button>
               <Button className="flex-1" onClick={confirmSelfie} disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar"}
               </Button>
@@ -221,103 +235,73 @@ const TimeClockPage = () => {
           </Card>
         )}
 
-        {/* Big action button */}
         {step === "idle" && (
-          <Button
-            size="lg"
-            className={`w-full h-24 text-lg font-bold ${
-              nextType === "entrada"
-                ? "bg-primary hover:bg-primary/90"
-                : "bg-destructive hover:bg-destructive/90"
-            }`}
-            onClick={() => handleClockClick(nextType)}
-            disabled={!coords || loading}
-          >
-            {nextType === "entrada" ? (
-              <>
-                <LogIn className="h-6 w-6 mr-2" /> Bater Entrada
-              </>
-            ) : (
-              <>
-                <LogOut className="h-6 w-6 mr-2" /> Bater Saída
-              </>
-            )}
-          </Button>
+          nextType ? (
+            <Button
+              size="lg"
+              className={`w-full h-24 text-lg font-bold ${isExit ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"}`}
+              onClick={() => handleClockClick(nextType)}
+              disabled={!coords || loading}
+            >
+              <NextIcon className="h-6 w-6 mr-2" /> {LABELS[nextType]}
+            </Button>
+          ) : (
+            <Card className="p-6 text-center bg-emerald-50 border-emerald-200">
+              <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto mb-2" />
+              <p className="font-semibold text-emerald-900">Jornada de hoje concluída!</p>
+              <p className="text-xs text-emerald-700 mt-1">As 4 batidas do dia foram registradas.</p>
+            </Card>
+          )
         )}
 
-        {/* Today entries */}
         <Card className="p-4">
-          <p className="text-sm font-semibold mb-3">Suas batidas de hoje</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold">Batidas de hoje</p>
+            <span className="text-xs text-muted-foreground">{todayEntries.length}/4</span>
+          </div>
           {todayEntries.length === 0 ? (
             <p className="text-xs text-muted-foreground">Nenhuma batida registrada hoje.</p>
           ) : (
             <div className="space-y-2">
-              {todayEntries.slice().reverse().map((e) => (
-                <div
-                  key={e.id}
-                  className="flex items-center justify-between rounded-md border p-2 text-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    {e.entry_type === "entrada" ? (
-                      <LogIn className="h-4 w-4 text-primary" />
-                    ) : (
-                      <LogOut className="h-4 w-4 text-destructive" />
-                    )}
-                    <span className="capitalize font-medium">{e.entry_type}</span>
+              {SEQUENCE.map((t) => {
+                const e = todayEntries.find((x) => x.entry_type === t);
+                const I = ICON[t];
+                return (
+                  <div key={t} className="flex items-center justify-between rounded-md border p-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <I className={`h-4 w-4 ${e ? "text-primary" : "text-muted-foreground/40"}`} />
+                      <span className="font-medium">{SHORT[t]}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {e ? (
+                        <>
+                          {e.within_geofence ? (
+                            <Badge variant="secondary" className="gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> No local
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive" className="gap-1">
+                              <AlertTriangle className="h-3 w-3" /> Fora ({e.distance_meters}m)
+                            </Badge>
+                          )}
+                          <span className="tabular-nums text-muted-foreground">
+                            {new Date(e.clocked_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {e.within_geofence ? (
-                      <Badge variant="secondary" className="gap-1">
-                        <CheckCircle2 className="h-3 w-3" /> No local
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive" className="gap-1">
-                        <AlertTriangle className="h-3 w-3" /> Fora ({e.distance_meters}m)
-                      </Badge>
-                    )}
-                    <span className="tabular-nums text-muted-foreground">
-                      {new Date(e.clocked_at).toLocaleTimeString("pt-BR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>
 
-        {/* Recent history */}
-        <Card className="p-4">
-          <p className="text-sm font-semibold mb-3">Histórico recente</p>
-          {myEntries.filter((e) => !todayEntries.includes(e)).slice(0, 10).length === 0 ? (
-            <p className="text-xs text-muted-foreground">Sem registros anteriores.</p>
-          ) : (
-            <div className="space-y-1.5">
-              {myEntries
-                .filter((e) => !todayEntries.includes(e))
-                .slice(0, 10)
-                .map((e) => {
-                  const d = new Date(e.clocked_at);
-                  return (
-                    <div
-                      key={e.id}
-                      className="flex items-center justify-between text-xs text-muted-foreground py-1 border-b last:border-0"
-                    >
-                      <span>
-                        {d.toLocaleDateString("pt-BR")} • {weekdays[d.getDay()].slice(0, 3)}
-                      </span>
-                      <span className="capitalize">{e.entry_type}</span>
-                      <span className="tabular-nums">
-                        {d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-                  );
-                })}
-            </div>
-          )}
-        </Card>
+        <Button variant="outline" className="w-full" onClick={handleExportPDF}>
+          <FileDown className="h-4 w-4 mr-2" /> Espelho de Ponto (PDF)
+        </Button>
 
         <p className="text-center text-xs text-muted-foreground">
           Logado como <strong>{user?.email}</strong>
