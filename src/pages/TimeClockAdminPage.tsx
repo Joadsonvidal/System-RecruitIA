@@ -212,6 +212,109 @@ const TimeClockAdminPage = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="sheet" className="space-y-4">
+          <Card className="p-4">
+            <div className="flex flex-col md:flex-row gap-3 md:items-end">
+              <div className="flex-1">
+                <Label className="flex items-center gap-1"><User className="h-3 w-3" /> Colaborador</Label>
+                <Select value={sheetUserId} onValueChange={setSelectedUser}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                  <SelectContent>
+                    {usersList.map(([uid, count]) => (
+                      <SelectItem key={uid} value={uid}>
+                        {uid.slice(0, 8)}… ({count} batidas)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Mês</Label>
+                <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i} value={String(i)}>
+                        {new Date(2026, i, 1).toLocaleDateString("pt-BR", { month: "long" })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Ano</Label>
+                <Input
+                  type="number"
+                  className="w-28"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                />
+              </div>
+              <Button
+                disabled={!sheetUserId}
+                onClick={() =>
+                  exportTimeSheetPDF({
+                    employeeName: sheetUserId.slice(0, 8),
+                    employeeEmail: sheetUserId,
+                    monthLabel: new Date(selectedYear, selectedMonth, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
+                    rows: sheet.rows,
+                  })
+                }
+              >
+                <FileDown className="h-4 w-4 mr-2" /> Exportar PDF
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-0 overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-muted/40">
+                  <th colSpan={5} className="p-2 text-center border font-semibold">PONTOS</th>
+                  <th colSpan={5} className="p-2 text-center border font-semibold">RESUMO DE JORNADA</th>
+                  <th className="p-2 border"></th>
+                </tr>
+                <tr className="bg-muted/20 text-muted-foreground">
+                  <th className="p-2 border text-left">DATA</th>
+                  <th className="p-2 border">1ª ENTRADA</th>
+                  <th className="p-2 border">1ª SAÍDA</th>
+                  <th className="p-2 border">2ª ENTRADA</th>
+                  <th className="p-2 border">2ª SAÍDA</th>
+                  <th className="p-2 border">CRÉDITO</th>
+                  <th className="p-2 border">DÉBITO</th>
+                  <th className="p-2 border">HORA INTERV.</th>
+                  <th className="p-2 border">HORA TRAB.</th>
+                  <th className="p-2 border">SALDO</th>
+                  <th className="p-2 border text-left">OBS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sheet.rows.map((r, i) => (
+                  <tr
+                    key={i}
+                    className={`tabular-nums ${r.isWeekend ? "bg-muted/20" : ""} ${r.hasIssue ? "bg-amber-50" : ""}`}
+                  >
+                    <td className="p-2 border whitespace-nowrap">{r.weekday}</td>
+                    <td className="p-2 border text-center">{r.ent1}</td>
+                    <td className="p-2 border text-center">{r.sai1}</td>
+                    <td className="p-2 border text-center">{r.ent2}</td>
+                    <td className="p-2 border text-center">{r.sai2}</td>
+                    <td className={`p-2 border text-center ${r.credito !== "0:00" ? "text-emerald-600 font-medium" : "text-muted-foreground"}`}>{r.credito}</td>
+                    <td className={`p-2 border text-center ${r.debito !== "0:00" ? "text-destructive font-medium" : "text-muted-foreground"}`}>{r.debito}</td>
+                    <td className="p-2 border text-center text-muted-foreground">{r.horaInterv}</td>
+                    <td className="p-2 border text-center">{r.horaTrab}</td>
+                    <td className="p-2 border text-center">{r.saldo}</td>
+                    <td className={`p-2 border ${r.hasIssue ? "text-amber-700" : "text-muted-foreground"}`}>{r.obs}</td>
+                  </tr>
+                ))}
+                {sheet.rows.length === 0 && (
+                  <tr><td colSpan={11} className="p-6 text-center text-muted-foreground">Sem dados.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="settings">
           <Card className="p-6 space-y-4 max-w-2xl">
             <div>
