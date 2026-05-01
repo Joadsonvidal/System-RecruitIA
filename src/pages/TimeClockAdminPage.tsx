@@ -279,6 +279,7 @@ const TimeClockAdminPage = () => {
                     employeeEmail: sheetUserId,
                     monthLabel: new Date(selectedYear, selectedMonth, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
                     rows: sheet.rows,
+                    totals: { credito: sheet.totalCredito, debito: sheet.totalDebito, saldo: sheet.saldoFinal },
                   })
                 }
               >
@@ -286,6 +287,28 @@ const TimeClockAdminPage = () => {
               </Button>
             </div>
           </Card>
+
+          {/* Totais do mês */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Card className="p-4 border-emerald-200 bg-emerald-50">
+              <p className="text-xs font-medium text-emerald-700">Créditos (horas extras)</p>
+              <p className="text-2xl font-bold text-emerald-700 tabular-nums">
+                {Math.floor(sheet.totalCredito / 60)}h{String(sheet.totalCredito % 60).padStart(2, "0")}
+              </p>
+            </Card>
+            <Card className="p-4 border-destructive/30 bg-destructive/5">
+              <p className="text-xs font-medium text-destructive">Débitos (horas faltantes)</p>
+              <p className="text-2xl font-bold text-destructive tabular-nums">
+                {Math.floor(sheet.totalDebito / 60)}h{String(sheet.totalDebito % 60).padStart(2, "0")}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-xs font-medium text-muted-foreground">Saldo final</p>
+              <p className={`text-2xl font-bold tabular-nums ${sheet.saldoFinal >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+                {sheet.saldoFinal < 0 ? "-" : ""}{Math.floor(Math.abs(sheet.saldoFinal) / 60)}h{String(Math.abs(sheet.saldoFinal) % 60).padStart(2, "0")}
+              </p>
+            </Card>
+          </div>
 
           <Card className="p-0 overflow-x-auto">
             <table className="w-full text-xs border-collapse">
