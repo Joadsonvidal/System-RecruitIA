@@ -13,8 +13,19 @@ export interface Candidate {
   salary?: number;
   hireDate?: string;
   terminationDate?: string;
+  terminationReason?: string;
   createdAt?: string;
 }
+
+export const TERMINATION_REASONS = [
+  "Desistência por valor",
+  "Desistência por desânimo",
+  "Conflito interno",
+  "Recebeu outra proposta externa",
+  "Proposta de Player",
+  "Proposta de Conselheiro",
+] as const;
+export type TerminationReason = typeof TERMINATION_REASONS[number];
 
 export interface Job {
   id: string;
