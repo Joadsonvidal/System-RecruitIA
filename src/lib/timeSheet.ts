@@ -149,6 +149,7 @@ export const exportTimeSheetPDF = (params: {
   employeeEmail: string;
   monthLabel: string;
   rows: SheetRow[];
+  totals?: { credito: number; debito: number; saldo: number };
 }) => {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -182,6 +183,17 @@ export const exportTimeSheetPDF = (params: {
       r.weekday, r.ent1, r.sai1, r.ent2, r.sai2,
       r.credito, r.debito, r.horaInterv, r.horaTrab, r.saldo, r.obs,
     ]),
+    foot: params.totals
+      ? [[
+          { content: "TOTAIS DO MÊS", colSpan: 5, styles: { halign: "right", fontStyle: "bold", fillColor: [245, 245, 245] } },
+          { content: minutesToHHMM(params.totals.credito), styles: { fontStyle: "bold", textColor: [0, 130, 60], fillColor: [245, 245, 245] } },
+          { content: minutesToHHMM(params.totals.debito), styles: { fontStyle: "bold", textColor: [200, 30, 30], fillColor: [245, 245, 245] } },
+          { content: "", styles: { fillColor: [245, 245, 245] } },
+          { content: "", styles: { fillColor: [245, 245, 245] } },
+          { content: `Saldo: ${minutesToHHMM(params.totals.saldo)}`, styles: { fontStyle: "bold", fillColor: [245, 245, 245] } },
+          { content: "", styles: { fillColor: [245, 245, 245] } },
+        ]]
+      : undefined,
     styles: { fontSize: 8, cellPadding: 1.5, halign: "center" },
     headStyles: { fillColor: [250, 250, 250], textColor: 40, fontStyle: "bold", lineWidth: 0.1, lineColor: [200, 200, 200] },
     bodyStyles: { lineWidth: 0.1, lineColor: [220, 220, 220] },
@@ -202,4 +214,50 @@ export const exportTimeSheetPDF = (params: {
   });
 
   doc.save(`espelho-ponto-${params.monthLabel.replace(/\s+/g, "-")}.pdf`);
+};
+
+export const exportEntriesPDF = (params: {
+  title: string;
+  rows: Array<{
+    date: string;
+    time: string;
+    user: string;
+    type: string;
+    address: string;
+    geofence: string;
+    distance: string;
+  }>;
+}) => {
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("Registro de Batidas de Ponto", 14, 15);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(params.title, 14, 21);
+  doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pageWidth - 14, 15, { align: "right" });
+
+  autoTable(doc, {
+    startY: 28,
+    head: [["Data", "Hora", "Colaborador", "Tipo", "Endereço", "No local", "Distância"]],
+    body: params.rows.map((r) => [r.date, r.time, r.user, r.type, r.address, r.geofence, r.distance]),
+    styles: { fontSize: 8, cellPadding: 1.5 },
+    headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold" },
+    columnStyles: {
+      4: { cellWidth: 90 },
+    },
+    didParseCell: (data) => {
+      if (data.section === "body" && data.column.index === 5) {
+        const v = String(data.cell.raw);
+        if (v.toLowerCase().includes("não") || v.toLowerCase().includes("nao") || v === "Não") {
+          data.cell.styles.textColor = [200, 30, 30];
+          data.cell.styles.fontStyle = "bold";
+        }
+      }
+    },
+  });
+
+  doc.save(`batidas-ponto-${Date.now()}.pdf`);
 };
