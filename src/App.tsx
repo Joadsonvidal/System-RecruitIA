@@ -20,6 +20,7 @@ import SettingsPermissionsPage from "./pages/SettingsPermissionsPage";
 import PricingPage from "./pages/PricingPage";
 import TimeClockPage from "./pages/TimeClockPage";
 import TimeClockAdminPage from "./pages/TimeClockAdminPage";
+import EmployeesPage from "./pages/EmployeesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/pipeline" element={<Pipeline />} />
               <Route path="/candidates" element={<Candidates />} />
+              <Route path="/colaboradores" element={<EmployeesPage />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/messages" element={<Messages />} />

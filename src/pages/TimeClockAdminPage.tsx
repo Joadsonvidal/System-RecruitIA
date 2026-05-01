@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTimeClock } from "@/hooks/useTimeClock";
 import { MapPin, Download, Loader2, AlertTriangle, CheckCircle2, FileDown, User } from "lucide-react";
 import { toast } from "sonner";
-import { buildMonthlyTimeSheet, exportTimeSheetPDF } from "@/lib/timeSheet";
+import { buildMonthlyTimeSheet, exportTimeSheetPDF, exportEntriesPDF } from "@/lib/timeSheet";
 
 const TYPE_LABEL: Record<string, string> = {
   entrada: "1ª Entrada",
@@ -106,6 +106,24 @@ const TimeClockAdminPage = () => {
     a.click();
   };
 
+  const exportEntriesPdf = () => {
+    exportEntriesPDF({
+      title: filterUser ? `Filtro: ${filterUser}` : "Todas as batidas",
+      rows: filtered.map((e) => {
+        const d = new Date(e.clocked_at);
+        return {
+          date: d.toLocaleDateString("pt-BR"),
+          time: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+          user: e.user_id.slice(0, 8) + "…",
+          type: TYPE_LABEL[e.entry_type] ?? e.entry_type,
+          address: e.address ?? `${e.latitude}, ${e.longitude}`,
+          geofence: e.within_geofence ? "Sim" : "Não",
+          distance: e.distance_meters != null ? `${e.distance_meters}m` : "—",
+        };
+      }),
+    });
+  };
+
   const viewSelfie = async (path: string) => {
     const url = await getSelfieSignedUrl(path);
     if (url) window.open(url, "_blank");
@@ -142,6 +160,9 @@ const TimeClockAdminPage = () => {
               </div>
               <Button onClick={exportCsv} variant="outline">
                 <Download className="h-4 w-4 mr-2" /> Exportar CSV
+              </Button>
+              <Button onClick={exportEntriesPdf} variant="outline">
+                <FileDown className="h-4 w-4 mr-2" /> Exportar PDF (folha deitada)
               </Button>
             </div>
           </Card>
@@ -258,6 +279,7 @@ const TimeClockAdminPage = () => {
                     employeeEmail: sheetUserId,
                     monthLabel: new Date(selectedYear, selectedMonth, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
                     rows: sheet.rows,
+                    totals: { credito: sheet.totalCredito, debito: sheet.totalDebito, saldo: sheet.saldoFinal },
                   })
                 }
               >
@@ -265,6 +287,28 @@ const TimeClockAdminPage = () => {
               </Button>
             </div>
           </Card>
+
+          {/* Totais do mês */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Card className="p-4 border-emerald-200 bg-emerald-50">
+              <p className="text-xs font-medium text-emerald-700">Créditos (horas extras)</p>
+              <p className="text-2xl font-bold text-emerald-700 tabular-nums">
+                {Math.floor(sheet.totalCredito / 60)}h{String(sheet.totalCredito % 60).padStart(2, "0")}
+              </p>
+            </Card>
+            <Card className="p-4 border-destructive/30 bg-destructive/5">
+              <p className="text-xs font-medium text-destructive">Débitos (horas faltantes)</p>
+              <p className="text-2xl font-bold text-destructive tabular-nums">
+                {Math.floor(sheet.totalDebito / 60)}h{String(sheet.totalDebito % 60).padStart(2, "0")}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-xs font-medium text-muted-foreground">Saldo final</p>
+              <p className={`text-2xl font-bold tabular-nums ${sheet.saldoFinal >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+                {sheet.saldoFinal < 0 ? "-" : ""}{Math.floor(Math.abs(sheet.saldoFinal) / 60)}h{String(Math.abs(sheet.saldoFinal) % 60).padStart(2, "0")}
+              </p>
+            </Card>
+          </div>
 
           <Card className="p-0 overflow-x-auto">
             <table className="w-full text-xs border-collapse">

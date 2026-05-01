@@ -182,6 +182,7 @@ const TimeClockPage = () => {
       employeeEmail: user?.email ?? "",
       monthLabel: today.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
       rows: sheet.rows,
+      totals: { credito: sheet.totalCredito, debito: sheet.totalDebito, saldo: sheet.saldoFinal },
     });
   };
 
@@ -302,6 +303,14 @@ const TimeClockPage = () => {
         <Button variant="outline" className="w-full" onClick={handleExportPDF}>
           <FileDown className="h-4 w-4 mr-2" /> Espelho de Ponto (PDF)
         </Button>
+
+        <Card className="p-3 bg-muted/40 border-dashed">
+          <p className="text-xs text-muted-foreground">
+            <strong className="text-foreground">Dica:</strong> Adicione esta página à tela inicial do seu celular para abrir como um app.
+            <br />
+            <span className="text-[11px]">iPhone: Compartilhar → Adicionar à Tela de Início. Android: menu do navegador → Adicionar à tela inicial.</span>
+          </p>
+        </Card>
 
         <p className="text-center text-xs text-muted-foreground">
           Logado como <strong>{user?.email}</strong>

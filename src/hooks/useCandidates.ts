@@ -20,6 +20,7 @@ const rowToCandidate = (r: any): Candidate => ({
   salary: r.salary ?? undefined,
   hireDate: r.hire_date ?? undefined,
   terminationDate: r.termination_date ?? undefined,
+  terminationReason: r.termination_reason ?? undefined,
   createdAt: r.created_at?.split("T")[0],
 });
 
@@ -49,6 +50,7 @@ const candidateToRow = (c: Partial<Candidate>) => {
   if (c.salary !== undefined) o.salary = c.salary;
   if (c.hireDate !== undefined) o.hire_date = c.hireDate;
   if (c.terminationDate !== undefined) o.termination_date = c.terminationDate;
+  if (c.terminationReason !== undefined) o.termination_reason = c.terminationReason;
   return o;
 };
 
