@@ -161,6 +161,9 @@ const TimeClockAdminPage = () => {
               <Button onClick={exportCsv} variant="outline">
                 <Download className="h-4 w-4 mr-2" /> Exportar CSV
               </Button>
+              <Button onClick={exportEntriesPdf} variant="outline">
+                <FileDown className="h-4 w-4 mr-2" /> Exportar PDF (folha deitada)
+              </Button>
             </div>
           </Card>
 
