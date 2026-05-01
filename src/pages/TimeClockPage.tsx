@@ -182,6 +182,7 @@ const TimeClockPage = () => {
       employeeEmail: user?.email ?? "",
       monthLabel: today.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
       rows: sheet.rows,
+      totals: { credito: sheet.totalCredito, debito: sheet.totalDebito, saldo: sheet.saldoFinal },
     });
   };
 
