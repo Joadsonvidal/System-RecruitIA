@@ -31,6 +31,7 @@ export type Database = {
           score: number | null
           stage: string
           termination_date: string | null
+          termination_reason: string | null
           updated_at: string
           user_id: string | null
         }
@@ -50,6 +51,7 @@ export type Database = {
           score?: number | null
           stage?: string
           termination_date?: string | null
+          termination_reason?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -69,8 +71,60 @@ export type Database = {
           score?: number | null
           stage?: string
           termination_date?: string | null
+          termination_reason?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          created_at: string
+          department: string | null
+          email: string | null
+          hire_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string
+          phone: string | null
+          resume_name: string | null
+          resume_url: string | null
+          role: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          hire_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id: string
+          phone?: string | null
+          resume_name?: string | null
+          resume_url?: string | null
+          role?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          hire_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          resume_name?: string | null
+          resume_url?: string | null
+          role?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
