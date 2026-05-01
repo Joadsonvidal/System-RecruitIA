@@ -9,6 +9,7 @@ import {
   Settings,
   Zap,
   Clock,
+  UserCheck,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -16,6 +17,7 @@ const navItems = [
   { path: "/", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/pipeline", icon: Kanban, label: "Pipeline" },
   { path: "/candidates", icon: Users, label: "Candidatos" },
+  { path: "/colaboradores", icon: UserCheck, label: "Colaboradores" },
   { path: "/jobs", icon: Briefcase, label: "Vagas" },
   { path: "/calendar", icon: Calendar, label: "Agenda" },
   { path: "/messages", icon: MessageSquare, label: "Conversas" },
