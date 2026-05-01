@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTimeClock } from "@/hooks/useTimeClock";
 import { MapPin, Download, Loader2, AlertTriangle, CheckCircle2, FileDown, User } from "lucide-react";
 import { toast } from "sonner";
-import { buildMonthlyTimeSheet, exportTimeSheetPDF } from "@/lib/timeSheet";
+import { buildMonthlyTimeSheet, exportTimeSheetPDF, exportEntriesPDF } from "@/lib/timeSheet";
 
 const TYPE_LABEL: Record<string, string> = {
   entrada: "1ª Entrada",
@@ -104,6 +104,24 @@ const TimeClockAdminPage = () => {
     a.href = url;
     a.download = `ponto-${Date.now()}.csv`;
     a.click();
+  };
+
+  const exportEntriesPdf = () => {
+    exportEntriesPDF({
+      title: filterUser ? `Filtro: ${filterUser}` : "Todas as batidas",
+      rows: filtered.map((e) => {
+        const d = new Date(e.clocked_at);
+        return {
+          date: d.toLocaleDateString("pt-BR"),
+          time: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+          user: e.user_id.slice(0, 8) + "…",
+          type: TYPE_LABEL[e.entry_type] ?? e.entry_type,
+          address: e.address ?? `${e.latitude}, ${e.longitude}`,
+          geofence: e.within_geofence ? "Sim" : "Não",
+          distance: e.distance_meters != null ? `${e.distance_meters}m` : "—",
+        };
+      }),
+    });
   };
 
   const viewSelfie = async (path: string) => {
