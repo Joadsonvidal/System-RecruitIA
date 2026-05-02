@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_email: string | null
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_email: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_email?: string | null
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_email?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_email?: string | null
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_email?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       candidates: {
         Row: {
           created_at: string
@@ -209,6 +242,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          status: string
           updated_at: string
           user_id: string
         }
@@ -217,6 +251,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -225,6 +260,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -359,14 +395,43 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       get_server_time: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "super_admin" | "user"
       time_clock_entry_type:
         | "entrada"
         | "saida"
@@ -499,6 +564,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["super_admin", "user"],
       time_clock_entry_type: [
         "entrada",
         "saida",

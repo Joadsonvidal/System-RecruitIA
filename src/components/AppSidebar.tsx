@@ -10,8 +10,10 @@ import {
   Zap,
   Clock,
   UserCheck,
+  ShieldCheck,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const navItems = [
   { path: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -27,6 +29,10 @@ const navItems = [
 
 const AppSidebar = () => {
   const location = useLocation();
+  const { isSuperAdmin } = useUserRole();
+  const items = isSuperAdmin
+    ? [...navItems, { path: "/admin", icon: ShieldCheck, label: "Super Admin" }]
+    : navItems;
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-[240px] flex-col bg-sidebar border-r border-sidebar-border">
@@ -38,7 +44,7 @@ const AppSidebar = () => {
       </div>
 
       <nav className="flex-1 px-3 py-2 space-y-1">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link

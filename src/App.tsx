@@ -21,6 +21,8 @@ import PricingPage from "./pages/PricingPage";
 import TimeClockPage from "./pages/TimeClockPage";
 import TimeClockAdminPage from "./pages/TimeClockAdminPage";
 import EmployeesPage from "./pages/EmployeesPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import RequireSuperAdmin from "./components/RequireSuperAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -65,6 +67,14 @@ const App = () => (
               <Route path="/settings/users" element={<SettingsUsersPage />} />
               <Route path="/settings/permissions" element={<SettingsPermissionsPage />} />
               <Route path="/pricing" element={<PricingPage />} />
+              <Route
+                path="/admin"
+                element={
+                  <RequireSuperAdmin>
+                    <AdminUsersPage />
+                  </RequireSuperAdmin>
+                }
+              />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
