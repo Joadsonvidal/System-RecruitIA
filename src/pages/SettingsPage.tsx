@@ -5,6 +5,7 @@ import { User, Shield, MessageSquare, CreditCard, Smartphone, Copy, Share2, Chec
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const sections = [
   { icon: User, label: "Usuários", description: "Gerencie os membros da sua equipe", path: "/settings/users" },
@@ -14,7 +15,8 @@ const sections = [
 ];
 
 const SettingsPage = () => {
-  const pontoUrl = `${window.location.origin}/ponto`;
+  const { user } = useAuth();
+  const pontoUrl = `${window.location.origin}/ponto/acesso?empresa=${user?.id ?? ""}`;
   const [copied, setCopied] = useState(false);
 
   const copyLink = async () => {
