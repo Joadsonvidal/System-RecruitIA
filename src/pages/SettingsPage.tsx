@@ -5,6 +5,7 @@ import { User, Shield, MessageSquare, CreditCard, Smartphone, Copy, Share2, Chec
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const sections = [
   { icon: User, label: "Usuários", description: "Gerencie os membros da sua equipe", path: "/settings/users" },
@@ -14,7 +15,8 @@ const sections = [
 ];
 
 const SettingsPage = () => {
-  const pontoUrl = `${window.location.origin}/ponto`;
+  const { user } = useAuth();
+  const pontoUrl = `${window.location.origin}/ponto/acesso?empresa=${user?.id ?? ""}`;
   const [copied, setCopied] = useState(false);
 
   const copyLink = async () => {
@@ -71,10 +73,11 @@ const SettingsPage = () => {
                 <div className="text-xs text-muted-foreground space-y-1 border-t pt-3">
                   <p className="font-medium text-foreground">Como o colaborador usa:</p>
                   <p>1. Abre a câmera do celular e aponta para o QR Code (ou clica no link).</p>
-                  <p>2. Faz login com email e senha (uma única vez).</p>
+                  <p>2. Digita o e-mail cadastrado pelo RH e cria sua senha (uma única vez).</p>
                   <p>3. <strong>iPhone:</strong> Toca em "Compartilhar" → "Adicionar à Tela de Início".</p>
-                  <p>3. <strong>Android:</strong> Menu do navegador → "Adicionar à tela inicial".</p>
-                  <p>4. Pronto! Vira um ícone igual a um app — basta abrir e bater o ponto.</p>
+                  <p>4. <strong>Android:</strong> Menu do navegador → "Adicionar à tela inicial".</p>
+                  <p>5. Pronto! Vira um ícone igual a um app — basta abrir e bater o ponto.</p>
+                  <p className="pt-2 text-foreground"><strong>Importante:</strong> cadastre o colaborador na aba <Link to="/colaboradores" className="text-primary hover:underline">Colaboradores</Link> antes — só quem está na lista consegue entrar.</p>
                 </div>
               </div>
             </div>

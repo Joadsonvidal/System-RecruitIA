@@ -1,1 +1,4 @@
 project_id = "bojnchvbduyqaimlfkez"
+
+[functions.employee-access]
+verify_jwt = false
