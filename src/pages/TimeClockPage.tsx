@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { exportTimeSheetPDF, buildMonthlyTimeSheet } from "@/lib/timeSheet";
+import confetti from "canvas-confetti";
 
 type EntryType = "entrada" | "saida_almoco" | "retorno_almoco" | "saida";
 
@@ -154,7 +155,12 @@ const TimeClockPage = () => {
 
     if (result.error) toast.error("Erro: " + result.error);
     else if (!result.withinGeofence) toast.warning(`Ponto registrado FORA do local (${result.distance}m).`);
-    else toast.success(`${SHORT[type]} registrada!`);
+    else {
+      toast.success(`${SHORT[type]} registrada!`);
+      if (type === "saida") {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      }
+    }
     setStep("idle");
     setPendingType(null);
   };

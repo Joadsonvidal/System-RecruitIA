@@ -7,6 +7,9 @@ import AddCandidateDialog from "@/components/AddCandidateDialog";
 import CandidateDetailDialog from "@/components/CandidateDetailDialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const MONTH_NAMES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -34,20 +37,24 @@ const Pipeline = () => {
   const now = new Date();
   const currentMonthKey = `${YEAR}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const recruiters = useMemo(() => {
     const members = getTeamMembers();
     return members.filter((m) => m.status === "ativo").map((m) => m.name).sort();
   }, []);
 
-  // Filter candidates by selected month and recruiter
+  // Filter candidates by selected month, recruiter and search term
   const filteredCandidates = useMemo(() => {
     return candidates.filter((c) => {
       const matchMonth = isInMonth(c.createdAt, selectedMonth);
       const matchRecruiter = selectedRecruiter === "all" || c.recruiter === selectedRecruiter;
-      return matchMonth && matchRecruiter;
+      const matchSearch = searchTerm === "" || 
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        c.position.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchMonth && matchRecruiter && matchSearch;
     });
-  }, [candidates, selectedMonth, selectedRecruiter]);
+  }, [candidates, selectedMonth, selectedRecruiter, searchTerm]);
 
   const handleDragStart = (id: string) => setDraggedId(id);
   const handleDrop = (stageId: string) => {
@@ -69,7 +76,16 @@ const Pipeline = () => {
           <h1 className="text-2xl font-bold">Pipeline</h1>
           <p className="text-muted-foreground text-sm mt-1">Gerencie candidatos pelo processo seletivo</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative w-full sm:w-[200px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Buscar candidato..." 
+              className="pl-9 h-9" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Mês" />
@@ -110,38 +126,44 @@ const Pipeline = () => {
                 </span>
               </div>
               <div className="space-y-2">
-                {stageCandidates.map((candidate) => (
-                  <div
-                    key={candidate.id}
-                    draggable
-                    onDragStart={() => handleDragStart(candidate.id)}
-                    onClick={() => openDetail(candidate)}
-                    className={`kanban-card ${draggedId === candidate.id ? "opacity-50" : ""}`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                          {candidate.name.charAt(0)}
+                <AnimatePresence>
+                  {stageCandidates.map((candidate) => (
+                    <motion.div
+                      key={candidate.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.2 }}
+                      draggable
+                      onDragStart={() => handleDragStart(candidate.id)}
+                      onClick={() => openDetail(candidate)}
+                      className={`kanban-card ${draggedId === candidate.id ? "opacity-50" : ""}`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                            {candidate.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold leading-tight">{candidate.name}</p>
+                            <p className="text-xs text-muted-foreground">{candidate.position}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold leading-tight">{candidate.name}</p>
-                          <p className="text-xs text-muted-foreground">{candidate.position}</p>
-                        </div>
+                        <button className="text-muted-foreground hover:text-foreground p-0.5">
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </button>
                       </div>
-                      <button className="text-muted-foreground hover:text-foreground p-0.5">
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-2">
-                      <Phone className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">{candidate.phone}</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
-                      <span className="text-[11px] text-muted-foreground">{candidate.lastInteraction}</span>
-                      <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{candidate.origin}</span>
-                    </div>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-1.5 mt-2">
+                        <Phone className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{candidate.phone}</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+                        <span className="text-[11px] text-muted-foreground">{candidate.lastInteraction}</span>
+                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{candidate.origin}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             </div>
           );

@@ -110,8 +110,20 @@
   }
 
   .kanban-card {
-    @apply bg-card rounded-lg p-3 border border-border cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md;
+    @apply bg-card/80 backdrop-blur-md rounded-lg p-3 border border-border/50 cursor-grab active:cursor-grabbing transition-all hover:shadow-lg hover:border-primary/30;
     box-shadow: var(--shadow-card);
+  }
+
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.2)];
+  }
+
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-md border border-white/20 dark:border-white/5 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .glass-nav {
+    @apply bg-background/80 backdrop-blur-lg border-b border-white/10 shadow-sm sticky top-0 z-50;
   }
 
   .sidebar-item {

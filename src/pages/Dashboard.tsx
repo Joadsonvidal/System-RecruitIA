@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
-import { Users, Briefcase, Calendar, UserPlus, ArrowRight, UserMinus, DollarSign, Filter, Plus, Trash2, Pencil, Check, X, CalendarDays } from "lucide-react";
-import { useAppContext } from "@/contexts/AppContext";
+import { useState, useMemo, useEffect } from "react";
+import { Users, Briefcase, Calendar, UserPlus, ArrowRight, UserMinus, DollarSign, Filter, Plus, Trash2, Pencil, Check, X, CalendarDays, Clock, Activity } from "lucide-react";
 import { PIPELINE_STAGES } from "@/data/mockData";
 import { getTeamMembers } from "@/hooks/useTeamMembers";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import AddCandidateDialog from "@/components/AddCandidateDialog";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,44 @@ const Dashboard = () => {
   // --- Payroll edit state ---
   const [editingPayroll, setEditingPayroll] = useState<string | null>(null);
   const [editSalary, setEditSalary] = useState("");
+
+  // --- Working Now state ---
+  const [workingNow, setWorkingNow] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchWorking = async () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("time_clock_entries")
+        .select("*, profiles(display_name)")
+        .gte("clocked_at", today.toISOString())
+        .order("clocked_at", { ascending: false });
+      
+      if (data) {
+        // Find latest entry for each user
+        const latestByUser = new Map();
+        data.forEach((entry) => {
+          if (!latestByUser.has(entry.user_id)) {
+            latestByUser.set(entry.user_id, entry);
+          }
+        });
+        
+        // Filter those whose last entry is an "in" entry
+        const active = Array.from(latestByUser.values()).filter(
+          (e) => e.entry_type === "entrada" || e.entry_type === "retorno_almoco"
+        );
+        setWorkingNow(active);
+      }
+    };
+    
+    fetchWorking();
+    const ch = supabase.channel("working-now")
+      .on("postgres_changes", { event: "*", schema: "public", table: "time_clock_entries" }, fetchWorking)
+      .subscribe();
+      
+    return () => { supabase.removeChannel(ch); };
+  }, []);
 
   // ===== CORE FILTERED DATA =====
   // Step 1: Filter by recruiter
@@ -360,32 +398,41 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recent Candidates */}
+        {/* Quem está trabalhando agora */}
         <div className="stat-card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold">Candidatos Recentes</h2>
-            <Link to="/candidates">
-              <Button variant="ghost" size="sm">
-                Ver todos <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-emerald-500" />
+              <h2 className="font-semibold">Trabalhando Agora</h2>
+            </div>
+            <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+              {workingNow.length} online
+            </span>
           </div>
           <div className="space-y-3">
-            {recentCandidates.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum candidato novo neste mês.</p>
+            {workingNow.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Ninguém ativo no momento.</p>
             ) : (
-              recentCandidates.map((candidate) => (
-                <div key={candidate.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              workingNow.map((entry) => (
+                <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg bg-emerald-50/50 border border-emerald-100">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-                      {candidate.name.charAt(0)}
+                    <div className="relative">
+                      <div className="h-8 w-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-semibold">
+                        {(entry.profiles?.display_name || "U").charAt(0)}
+                      </div>
+                      <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{candidate.name}</p>
-                      <p className="text-xs text-muted-foreground">{candidate.position}</p>
+                      <p className="text-sm font-medium">{entry.profiles?.display_name || "Colaborador"}</p>
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" /> 
+                        Desde {new Date(entry.clocked_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                      </p>
                     </div>
                   </div>
-                  <span className="text-xs text-muted-foreground">{candidate.origin}</span>
+                  <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded">
+                    {entry.entry_type === "entrada" ? "Turno 1" : "Turno 2"}
+                  </span>
                 </div>
               ))
             )}
