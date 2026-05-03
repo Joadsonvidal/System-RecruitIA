@@ -23,6 +23,8 @@ import TimeClockAdminPage from "./pages/TimeClockAdminPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import RequireSuperAdmin from "./components/RequireSuperAdmin";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import EmployeeAccessPage from "./pages/EmployeeAccessPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
