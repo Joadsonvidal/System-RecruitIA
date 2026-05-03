@@ -40,6 +40,8 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
+            <Route path="/ponto/acesso" element={<EmployeeAccessPage />} />
             <Route
               path="/ponto"
               element={
