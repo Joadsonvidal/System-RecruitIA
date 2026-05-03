@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { email, owner_id, action, password } = await req.json();
+    const { email, owner_id, action, password, otp } = await req.json();
 
     if (!email || !owner_id || !action) {
       return json({ error: "Parâmetros inválidos." }, 400);
@@ -65,19 +65,74 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "send_otp") {
+      if (existing) return json({ error: "E-mail já tem conta." }, 409);
+      
+      // Gerar PIN de 6 dígitos
+      const pin = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Salvar no DB com validade de 15 minutos
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      await supabase.from("employee_otps").insert({
+        email: normalizedEmail,
+        otp_code: pin,
+        expires_at: expiresAt
+      });
+
+      // Enviar e-mail usando a API Resend (se tiver configurada nas secrets, senão apenas finge sucesso para dev)
+      const resendKey = Deno.env.get("RESEND_API_KEY");
+      if (resendKey) {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            from: "System-RecruitIA <no-reply@resend.dev>",
+            to: [normalizedEmail],
+            subject: "Seu código de acesso - Ponto Eletrônico",
+            html: `<p>Olá ${employee.name},</p><p>Seu código de verificação é: <strong>${pin}</strong></p><p>Este código expira em 15 minutos.</p>`
+          })
+        });
+      }
+
+      return json({ ok: true, dev_pin: resendKey ? undefined : pin }); // retorna o pin no frontend só se não tiver resend (para facilitar seus testes)
+    }
+
     if (action === "signup") {
+      
       if (!password || String(password).length < 6) {
         return json({ error: "A senha deve ter pelo menos 6 caracteres." }, 400);
+      }
+      if (!otp || String(otp).length !== 6) {
+        return json({ error: "Código de verificação inválido." }, 400);
       }
       if (existing) {
         return json({ error: "Já existe uma conta com este e-mail. Faça login." }, 409);
       }
+
+      // Validar OTP
+      const { data: otps } = await supabase
+        .from("employee_otps")
+        .select("*")
+        .eq("email", normalizedEmail)
+        .eq("otp_code", otp)
+        .gte("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (!otps || otps.length === 0) {
+         return json({ error: "Código inválido ou expirado." }, 400);
+      }
+
       const { error: createErr } = await supabase.auth.admin.createUser({
         email: normalizedEmail,
         password,
         email_confirm: true,
         user_metadata: { display_name: employee.name },
       });
+      
       if (createErr) return json({ error: createErr.message }, 500);
       return json({ ok: true });
     }

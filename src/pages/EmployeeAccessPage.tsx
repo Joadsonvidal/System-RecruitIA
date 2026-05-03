@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Clock, ArrowLeft } from "lucide-react";
 
-type Step = "email" | "create" | "login";
+type Step = "email" | "otp" | "create" | "login";
 
 const EmployeeAccessPage = () => {
   const [params] = useSearchParams();
@@ -18,6 +18,7 @@ const EmployeeAccessPage = () => {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,12 +49,41 @@ const EmployeeAccessPage = () => {
     const { data, error } = await supabase.functions.invoke("employee-access", {
       body: { email, owner_id: ownerId, action: "check" },
     });
-    setLoading(false);
+    
     if (error || (data as any)?.error) {
+      setLoading(false);
       return toast.error((data as any)?.error || "E-mail não cadastrado nesta empresa.");
     }
+    
     setName((data as any).name || "");
-    setStep((data as any).has_account ? "login" : "create");
+    
+    if ((data as any).has_account) {
+      setStep("login");
+      setLoading(false);
+    } else {
+      // Conta não existe, dispara o PIN para o e-mail (OTP)
+      const { data: otpData, error: otpError } = await supabase.functions.invoke("employee-access", {
+        body: { email, owner_id: ownerId, action: "send_otp" },
+      });
+      
+      setLoading(false);
+      if (otpError || (otpData as any)?.error) {
+        return toast.error("Erro ao enviar código de verificação.");
+      }
+      
+      toast.success("Código enviado para o seu e-mail!");
+      if ((otpData as any)?.dev_pin) {
+         // Apenas em ambiente sem Resend configurado
+         toast.info(`PIN DE TESTE: ${(otpData as any).dev_pin}`, { duration: 10000 });
+      }
+      setStep("otp");
+    }
+  };
+
+  const verifyOtpAndProceed = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length !== 6) return toast.error("O código deve ter 6 dígitos.");
+    setStep("create");
   };
 
   const createPassword = async (e: React.FormEvent) => {
@@ -62,7 +92,7 @@ const EmployeeAccessPage = () => {
     if (password !== confirm) return toast.error("As senhas não coincidem.");
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("employee-access", {
-      body: { email, owner_id: ownerId, action: "signup", password },
+      body: { email, owner_id: ownerId, action: "signup", password, otp },
     });
     if (error || (data as any)?.error) {
       setLoading(false);
@@ -94,6 +124,7 @@ const EmployeeAccessPage = () => {
           <h1 className="text-xl font-bold">Acesso do Colaborador</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {step === "email" && "Digite o e-mail cadastrado pela sua empresa."}
+            {step === "otp" && "Enviamos um código para o seu e-mail."}
             {step === "create" && `Olá, ${name || ""}! Crie sua senha para começar.`}
             {step === "login" && `Olá, ${name || ""}! Digite sua senha para entrar.`}
           </p>
@@ -112,6 +143,27 @@ const EmployeeAccessPage = () => {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Verificando..." : "Continuar"}
             </Button>
+          </form>
+        )}
+
+        {step === "otp" && (
+          <form onSubmit={verifyOtpAndProceed} className="space-y-3">
+            <div>
+              <Label htmlFor="otp">Código de Verificação (6 dígitos)</Label>
+              <Input
+                id="otp" type="text" required maxLength={6}
+                value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                placeholder="000000"
+                className="text-center tracking-widest text-lg font-bold"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={otp.length !== 6}>
+              Validar Código
+            </Button>
+            <button type="button" onClick={() => setStep("email")}
+              className="text-xs text-muted-foreground hover:underline flex items-center gap-1 mx-auto">
+              <ArrowLeft className="h-3 w-3" /> Voltar
+            </button>
           </form>
         )}
 
@@ -136,7 +188,7 @@ const EmployeeAccessPage = () => {
             </Button>
             <button type="button" onClick={() => setStep("email")}
               className="text-xs text-muted-foreground hover:underline flex items-center gap-1 mx-auto">
-              <ArrowLeft className="h-3 w-3" /> Trocar e-mail
+              <ArrowLeft className="h-3 w-3" /> Cancelar
             </button>
           </form>
         )}
