@@ -24,24 +24,33 @@
 
 ## 🗺️ Roadmap de Evolução e Melhorias
 
-### 1. Inteligência Artificial (Prioridade)
+### 1. Inteligência Artificial (Próxima Etapa)
 - [ ] **Leitura de Currículos (Parsing Automático):** Processar PDFs e extrair Habilidades, Experiência, e Contato via IA.
 - [ ] **Matching de Candidatos:** Gerar uma pontuação (Score de 0 a 100%) da aderência do candidato aos requisitos da vaga (`Jobs`).
 
 ### 2. Automação Dinâmica com WhatsApp
 - [ ] **Mensagens Automáticas de Status:** Enviar notificação pelo WhatsApp sempre que um candidato for movido no `Pipeline`.
-- [ ] **Integração Técnica:** Utilizar API Oficial do WhatsApp ou bibliotecas alternativas (como Baileys / Evolution API).
+- [ ] **Webhooks de Agendamento:** Notificar o gestor e o candidato via WhatsApp assim que uma entrevista for agendada.
 
-### 3. Melhorias Visuais e UX (Premium)
-- [ ] **Glassmorphism:** Aplicar efeitos translúcidos e modernos nos cards.
-- [ ] **Dark Mode Aprimorado:** Ajustar a paleta para um aspecto mais sofisticado e corporativo.
-- [ ] **Animações (Micro-interações):** Tornar o Kanban (Pipeline) mais fluido.
+## 🚀 Funcionalidades Entregues (Maio/2026)
 
-### 4. Funcionalidades em Tempo Real
-- [ ] **Supabase Realtime:** Ativar a sincronização em tempo real nas listas de candidatos, pipeline e relógio de ponto (`TimeClock`).
+### 1. Portal do Colaborador (Autoatendimento)
+- **Interface PWA:** Navegação mobile-first por abas (Ponto, Mural, Meu RH).
+- **Mural de Avisos:** Sistema de comunicados internos com marcação de leitura e gestão administrativa.
+- **Solicitações RH:** Envio de atestados e pedidos de férias com upload de documentos.
+
+### 2. Recrutamento & Agendamento
+- **Link estilo "Calendly":** Geração de link único por candidato no Pipeline.
+- **Página de Agendamento Pública:** Interface premium onde o candidato escolhe data/hora e salva no banco (`interviews`).
+
+### 3. Segurança e Hardening (Nível Enterprise)
+- **Anti-Spam OTP:** Rate limit e PINs criptográficos imprevisíveis.
+- **Redirecionamento Inteligente:** `ProtectedRoute` que separa o acesso de Admin do acesso de Colaborador.
+- **QR Code Dinâmico:** Link seguro com ID da empresa para acesso instantâneo.
 
 ## 📅 Histórico de Intervenções
-- **[03/05/2026]:** Projeto clonado, dependências instaladas. Chaves do Supabase original do Lovable removidas e substituídas pelas chaves oficiais do projeto (`sqlqhikhwlprrxnvjvrd`). Alterações enviadas para a branch `main`. Arquivo de memória (`AI_MEMORY.md`) criado.
+- **[03/05/2026]:** Configuração inicial, troca de chaves Supabase oficiais (`sqlqhikhwlprrxnvjvrd`).
+- **[04/05/2026]:** Implementação do ecossistema de colaborador, automação de agendamento e blindagem de segurança.
 
 ---
-*Nota para a IA: Sempre atualize este arquivo após grandes marcos, instalações de bibliotecas importantes ou mudanças na estrutura do banco de dados.*
+*Nota para a IA: Este arquivo é a bússola do projeto. Mantenha-o sempre atualizado.*
