@@ -25,6 +25,7 @@ import AdminUsersPage from "./pages/AdminUsersPage";
 import RequireSuperAdmin from "./components/RequireSuperAdmin";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import EmployeeAccessPage from "./pages/EmployeeAccessPage";
+import SchedulingPage from "./pages/SchedulingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
             <Route path="/ponto/acesso" element={<EmployeeAccessPage />} />
+            <Route path="/agendar/:candidateId" element={<SchedulingPage />} />
             <Route
               path="/ponto"
               element={

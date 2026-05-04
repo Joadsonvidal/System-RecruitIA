@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, Mail, User, MapPin, FileText, MessageSquare, Trash2 } from "lucide-react";
+import { Phone, Mail, User, MapPin, FileText, MessageSquare, Trash2, CalendarClock, Copy } from "lucide-react";
 import { type Candidate, PIPELINE_STAGES } from "@/data/mockData";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -43,6 +43,12 @@ const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, o
       onOpenChange(false);
       toast({ title: "Candidato excluído", description: `${candidate.name} foi removido.` });
     }
+  };
+
+  const handleGenerateScheduleLink = () => {
+    const link = `${window.location.origin}/agendar/${candidate.id.substring(0,8)}`;
+    navigator.clipboard.writeText(link);
+    toast({ title: "Link gerado e copiado!", description: `Envie este link no WhatsApp do candidato: ${link}` });
   };
 
   return (
@@ -123,6 +129,13 @@ const CandidateDetailDialog = ({ candidate, open, onOpenChange, onUpdateStage, o
             {candidate.score && (
               <Badge variant="secondary">Score: {candidate.score}</Badge>
             )}
+            
+            <div className="ml-auto">
+              <Button size="sm" variant="outline" className="text-primary border-primary/30 hover:bg-primary/10" onClick={handleGenerateScheduleLink}>
+                <CalendarClock className="h-4 w-4 mr-2" />
+                Link de Agendamento
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">

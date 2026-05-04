@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTimeClock } from "@/hooks/useTimeClock";
-import { MapPin, Download, Loader2, AlertTriangle, CheckCircle2, FileDown, User } from "lucide-react";
+import { MapPin, Download, Loader2, AlertTriangle, CheckCircle2, FileDown, User, Megaphone, FileCheck, CalendarClock, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { buildMonthlyTimeSheet, exportTimeSheetPDF, exportEntriesPDF } from "@/lib/timeSheet";
 
@@ -29,6 +29,13 @@ const TimeClockAdminPage = () => {
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth());
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
+  const [announcements, setAnnouncements] = useState<any[]>([
+    { id: "1", title: "Atualização da Carteirinha de Saúde", content: "Baixem o app da Unimed...", is_active: true, created_at: new Date().toISOString() }
+  ]);
+  const [requests, setRequests] = useState<any[]>([
+    { id: "1", user_id: "user_123", type: "atestado", status: "pendente", description: "Gripe forte", created_at: new Date().toISOString() }
+  ]);
+  const [newAviso, setNewAviso] = useState({ title: "", content: "" });
 
   const usersList = useMemo(() => {
     const map = new Map<string, number>();
@@ -143,6 +150,8 @@ const TimeClockAdminPage = () => {
         <TabsList>
           <TabsTrigger value="entries">Batidas</TabsTrigger>
           <TabsTrigger value="sheet">Espelho de Ponto</TabsTrigger>
+          <TabsTrigger value="rh_requests">Solicitações RH</TabsTrigger>
+          <TabsTrigger value="mural_admin">Mural de Avisos</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
 
@@ -357,6 +366,99 @@ const TimeClockAdminPage = () => {
               </tbody>
             </table>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="rh_requests" className="space-y-4">
+          <div className="flex items-center justify-between">
+             <h2 className="text-lg font-semibold flex items-center gap-2">
+               <FileCheck className="h-5 w-5" /> Solicitações de Colaboradores
+             </h2>
+          </div>
+          <Card className="p-0 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr className="text-left">
+                  <th className="p-3">Data</th>
+                  <th className="p-3">Colaborador</th>
+                  <th className="p-3">Tipo</th>
+                  <th className="p-3">Descrição</th>
+                  <th className="p-3">Anexo</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.map((r) => (
+                  <tr key={r.id} className="border-t">
+                    <td className="p-3">{new Date(r.created_at).toLocaleDateString("pt-BR")}</td>
+                    <td className="p-3 font-mono text-xs">{r.user_id.slice(0,8)}...</td>
+                    <td className="p-3 capitalize">{r.type}</td>
+                    <td className="p-3 text-xs">{r.description}</td>
+                    <td className="p-3">
+                      <Button size="sm" variant="ghost">Ver</Button>
+                    </td>
+                    <td className="p-3">
+                      <Badge variant={r.status === "pendente" ? "secondary" : "default"}>{r.status}</Badge>
+                    </td>
+                    <td className="p-3 flex gap-1">
+                      <Button size="sm" className="h-7 bg-emerald-600 hover:bg-emerald-700">Aprovar</Button>
+                      <Button size="sm" variant="destructive" className="h-7">Recusar</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="mural_admin" className="space-y-4">
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="p-5 space-y-4 md:col-span-1">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Novo Aviso no Mural
+              </h3>
+              <div className="space-y-2">
+                <Label>Título do Aviso</Label>
+                <Input 
+                  value={newAviso.title} 
+                  onChange={(e) => setNewAviso({...newAviso, title: e.target.value})}
+                  placeholder="Ex: Reunião Geral amanhã" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Conteúdo</Label>
+                <textarea 
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={newAviso.content} 
+                  onChange={(e) => setNewAviso({...newAviso, content: e.target.value})}
+                  placeholder="Descreva o aviso em detalhes..."
+                />
+              </div>
+              <Button className="w-full" onClick={() => {
+                setAnnouncements([{...newAviso, id: Date.now().toString(), created_at: new Date().toISOString(), is_active: true}, ...announcements]);
+                setNewAviso({title: "", content: ""});
+                toast.success("Aviso publicado!");
+              }}>
+                <Megaphone className="h-4 w-4 mr-2" /> Publicar Aviso
+              </Button>
+            </Card>
+
+            <div className="md:col-span-2 space-y-3">
+               <h3 className="font-semibold">Avisos Ativos</h3>
+               {announcements.map(a => (
+                 <Card key={a.id} className="p-4 flex items-start justify-between gap-4">
+                   <div>
+                     <h4 className="font-bold text-sm">{a.title}</h4>
+                     <p className="text-xs text-muted-foreground mt-1">{a.content}</p>
+                     <span className="text-[10px] text-muted-foreground mt-2 block">{new Date(a.created_at).toLocaleDateString("pt-BR")}</span>
+                   </div>
+                   <Button size="icon" variant="ghost" className="text-destructive h-8 w-8">
+                     <Trash2 className="h-4 w-4" />
+                   </Button>
+                 </Card>
+               ))}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="settings">
