@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Users, Briefcase, Calendar, UserPlus, ArrowRight, UserMinus, DollarSign, Filter, Plus, Trash2, Pencil, Check, X, CalendarDays, Clock, Activity } from "lucide-react";
 import { PIPELINE_STAGES } from "@/data/mockData";
+import { useAppContext } from "@/contexts/AppContext";
 import { getTeamMembers } from "@/hooks/useTeamMembers";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
