@@ -68,8 +68,22 @@ Deno.serve(async (req) => {
     if (action === "send_otp") {
       if (existing) return json({ error: "E-mail já tem conta." }, 409);
       
-      // Gerar PIN de 6 dígitos
-      const pin = Math.floor(100000 + Math.random() * 900000).toString();
+      // Prevenção de Email Bombing / Rate Limit: 1 OTP a cada 60 segundos
+      const { data: recentOtps } = await supabase
+        .from("employee_otps")
+        .select("created_at")
+        .eq("email", normalizedEmail)
+        .gte("created_at", new Date(Date.now() - 60000).toISOString())
+        .limit(1);
+        
+      if (recentOtps && recentOtps.length > 0) {
+        return json({ error: "Aguarde 1 minuto antes de solicitar um novo código." }, 429);
+      }
+
+      // Criptografia forte para gerar PIN (Nunca usar Math.random para segurança)
+      const array = new Uint32Array(1);
+      crypto.getRandomValues(array);
+      const pin = (100000 + (array[0] % 900000)).toString();
       
       // Salvar no DB com validade de 15 minutos
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
@@ -125,6 +139,9 @@ Deno.serve(async (req) => {
       if (!otps || otps.length === 0) {
          return json({ error: "Código inválido ou expirado." }, 400);
       }
+
+      // Prevenção de Reuso: Deletar OTP imediatamente após a validação bem-sucedida
+      await supabase.from("employee_otps").delete().eq("id", otps[0].id);
 
       const { error: createErr } = await supabase.auth.admin.createUser({
         email: normalizedEmail,
