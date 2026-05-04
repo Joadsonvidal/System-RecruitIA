@@ -16,7 +16,7 @@ const sections = [
 
 const SettingsPage = () => {
   const { user } = useAuth();
-  const pontoUrl = `${window.location.origin}/ponto/acesso?empresa=${user?.id ?? ""}`;
+  const pontoUrl = `${window.location.origin}/ponto?empresa=${user?.id ?? ""}`;
   const [copied, setCopied] = useState(false);
 
   const copyLink = async () => {
@@ -50,10 +50,14 @@ const SettingsPage = () => {
               Compartilhe este QR Code ou link com seus colaboradores. Eles fazem login uma vez e podem salvar o ícone na tela inicial do celular.
             </p>
 
-            <div className="mt-5 grid md:grid-cols-[auto,1fr] gap-6 items-start">
-              <div className="rounded-xl bg-white p-4 border w-fit mx-auto md:mx-0">
-                <QRCodeSVG value={pontoUrl} size={180} level="M" />
-              </div>
+              <div className="mt-5 grid md:grid-cols-[auto,1fr] gap-6 items-start">
+                <div className="rounded-xl bg-white p-4 border w-fit mx-auto md:mx-0 shadow-sm">
+                  {user?.id ? (
+                    <QRCodeSVG value={pontoUrl} size={200} level="H" includeMargin={true} />
+                  ) : (
+                    <div className="w-[200px] h-[200px] flex items-center justify-center text-xs text-muted-foreground">Carregando...</div>
+                  )}
+                </div>
 
               <div className="space-y-3">
                 <div>
