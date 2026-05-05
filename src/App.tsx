@@ -26,6 +26,7 @@ import RequireSuperAdmin from "./components/RequireSuperAdmin";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import EmployeeAccessPage from "./pages/EmployeeAccessPage";
 import SchedulingPage from "./pages/SchedulingPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/messages" element={<Messages />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/settings/users" element={<SettingsUsersPage />} />
               <Route path="/settings/permissions" element={<SettingsPermissionsPage />} />

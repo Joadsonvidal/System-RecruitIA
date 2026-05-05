@@ -59,6 +59,8 @@ const TimeClockPage = () => {
   const [pendingType, setPendingType] = useState<EntryType | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [coordsError, setCoordsError] = useState<string | null>(null);
+  const [challenge, setChallenge] = useState<string | null>(null);
+  const [challengePassed, setChallengePassed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -135,6 +137,9 @@ const TimeClockPage = () => {
     setPendingType(type);
     if (settings.require_selfie) {
       setStep("selfie");
+      setChallengePassed(false);
+      const challenges = ["Olhe para a ESQUERDA", "Olhe para a DIREITA", "SORRIA para a câmera"];
+      setChallenge(challenges[Math.floor(Math.random() * challenges.length)]);
       setTimeout(startCamera, 100);
     } else {
       submit(type, null);
@@ -240,10 +245,24 @@ const TimeClockPage = () => {
                   <Camera className="h-4 w-4" /> Selfie para {pendingType && SHORT[pendingType]}
                 </p>
                 <video ref={videoRef} className="w-full rounded-lg bg-black aspect-[4/3] object-cover" playsInline muted />
+                
+                <div className="bg-primary/10 border border-primary/20 p-3 rounded-lg text-center animate-pulse">
+                   <p className="text-sm font-bold text-primary">DESAFIO DE SEGURANÇA:</p>
+                   <p className="text-lg font-black text-primary uppercase">{challenge}</p>
+                </div>
+
                 <div className="flex gap-2">
                   <Button variant="outline" className="flex-1" onClick={cancelSelfie}>Cancelar</Button>
-                  <Button className="flex-1" onClick={confirmSelfie} disabled={loading}>
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar"}
+                  <Button 
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700" 
+                    onClick={() => {
+                      setChallengePassed(true);
+                      toast.success("Movimento detectado!");
+                      setTimeout(confirmSelfie, 500);
+                    }} 
+                    disabled={loading}
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Movimento"}
                   </Button>
                 </div>
               </Card>

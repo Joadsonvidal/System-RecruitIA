@@ -11,6 +11,7 @@ import {
   Clock,
   UserCheck,
   ShieldCheck,
+  BarChart3,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -24,6 +25,7 @@ const navItems = [
   { path: "/calendar", icon: Calendar, label: "Agenda" },
   { path: "/messages", icon: MessageSquare, label: "Conversas" },
   { path: "/ponto/admin", icon: Clock, label: "Ponto" },
+  { path: "/analytics", icon: BarChart3, label: "Analytics" },
   { path: "/settings", icon: Settings, label: "Configurações" },
 ];
 
