@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) {
     // Se estiver tentando acessar área de ponto, manda para o acesso de colaborador
-    if (location.pathname.startsWith("/ponto")) {
+    if (location.pathname.startsWith("/ponto") && location.pathname !== "/ponto/acesso") {
       return <Navigate to={`/ponto/acesso${location.search}`} state={{ from: location }} replace />;
     }
     return <Navigate to="/auth" state={{ from: location }} replace />;

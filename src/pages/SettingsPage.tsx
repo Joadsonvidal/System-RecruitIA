@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { User, Shield, MessageSquare, CreditCard, Smartphone, Copy, Share2, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -16,7 +16,10 @@ const sections = [
 
 const SettingsPage = () => {
   const { user } = useAuth();
-  const pontoUrl = `${window.location.origin}/ponto?empresa=${user?.id ?? ""}`;
+  const pontoUrl = useMemo(() => {
+    return `${window.location.origin}/ponto/acesso?empresa=${user?.id ?? ""}`;
+  }, [user?.id]);
+  
   const [copied, setCopied] = useState(false);
 
   const copyLink = async () => {
@@ -50,12 +53,27 @@ const SettingsPage = () => {
               Compartilhe este QR Code ou link com seus colaboradores. Eles fazem login uma vez e podem salvar o ícone na tela inicial do celular.
             </p>
 
-              <div className="mt-5 grid md:grid-cols-[auto,1fr] gap-6 items-start">
-                <div className="rounded-xl bg-white p-4 border w-fit mx-auto md:mx-0 shadow-sm">
+                <div className="mt-5 grid md:grid-cols-[auto,1fr] gap-6 items-start">
+                <div className="rounded-xl bg-white p-4 border w-fit mx-auto md:mx-0 shadow-lg ring-1 ring-black/5">
                   {user?.id ? (
-                    <QRCodeSVG value={pontoUrl} size={200} level="H" includeMargin={true} />
+                    <QRCodeSVG 
+                      value={pontoUrl} 
+                      size={220} 
+                      level="H" 
+                      includeMargin={true}
+                      imageSettings={{
+                        src: "/favicon.ico",
+                        x: undefined,
+                        y: undefined,
+                        height: 40,
+                        width: 40,
+                        excavate: true,
+                      }}
+                    />
                   ) : (
-                    <div className="w-[200px] h-[200px] flex items-center justify-center text-xs text-muted-foreground">Carregando...</div>
+                    <div className="w-[220px] h-[220px] flex items-center justify-center text-xs text-muted-foreground bg-muted/20 animate-pulse">
+                      Carregando dados da empresa...
+                    </div>
                   )}
                 </div>
 
