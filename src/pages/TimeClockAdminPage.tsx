@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTimeClock } from "@/hooks/useTimeClock";
-import { MapPin, Download, Loader2, AlertTriangle, CheckCircle2, FileDown, User, Megaphone, FileCheck, CalendarClock, Plus, Trash2 } from "lucide-react";
+import { MapPin, Download, Loader2, AlertTriangle, CheckCircle2, FileDown, User, Megaphone, FileCheck, CalendarClock, Plus, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { buildMonthlyTimeSheet, exportTimeSheetPDF, exportEntriesPDF } from "@/lib/timeSheet";
 
@@ -131,6 +131,29 @@ const TimeClockAdminPage = () => {
     });
   };
 
+  const exportPayrollCSV = () => {
+    const headers = ["ID Colaborador", "Data", "Tipo", "Hora", "Localizacao", "Geofence", "Distancia"];
+    const rows = filtered.map(e => [
+      e.user_id,
+      new Date(e.clocked_at).toLocaleDateString("pt-BR"),
+      e.entry_type,
+      new Date(e.clocked_at).toLocaleTimeString("pt-BR"),
+      `${e.latitude},${e.longitude}`,
+      e.within_geofence ? "OK" : "FORA",
+      e.distance_meters ?? "0"
+    ]);
+
+    const csvContent = [headers, ...rows].map(r => r.join(";")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", `folha_contabilidade_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Folha exportada para contabilidade!");
+  };
+
   const viewSelfie = async (path: string) => {
     const url = await getSelfieSignedUrl(path);
     if (url) window.open(url, "_blank");
@@ -141,9 +164,14 @@ const TimeClockAdminPage = () => {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold">Batedor de Ponto — Admin</h1>
-        <p className="text-sm text-muted-foreground">
-          Configure o local da empresa e veja todas as batidas dos colaboradores.
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Configure o local da empresa e veja todas as batidas dos colaboradores.
+          </p>
+          <Button onClick={exportPayrollCSV} className="bg-indigo-600 hover:bg-indigo-700 shadow-md">
+            <Download className="h-4 w-4 mr-2" /> Exportar Folha para Contabilidade
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="entries">
@@ -215,9 +243,12 @@ const TimeClockAdminPage = () => {
                               <CheckCircle2 className="h-3 w-3" /> OK
                             </Badge>
                           ) : (
-                            <Badge variant="destructive" className="gap-1">
-                              <AlertTriangle className="h-3 w-3" /> {e.distance_meters}m
-                            </Badge>
+                            <div className="flex flex-col gap-1">
+                              <Badge variant="destructive" className="gap-1 animate-pulse">
+                                <AlertCircle className="h-3 w-3" /> FORA DO RAIO
+                              </Badge>
+                              <span className="text-[10px] font-bold text-destructive text-center">{e.distance_meters}m de distância</span>
+                            </div>
                           )}
                         </td>
                         <td className="p-3">

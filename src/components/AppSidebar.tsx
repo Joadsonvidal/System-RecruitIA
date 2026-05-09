@@ -12,6 +12,7 @@ import {
   UserCheck,
   ShieldCheck,
   BarChart3,
+  FileCheck,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -26,6 +27,7 @@ const navItems = [
   { path: "/messages", icon: MessageSquare, label: "Conversas" },
   { path: "/ponto/admin", icon: Clock, label: "Ponto" },
   { path: "/analytics", icon: BarChart3, label: "Analytics" },
+  { path: "/onboarding", icon: FileCheck, label: "Onboarding" },
   { path: "/settings", icon: Settings, label: "Configurações" },
 ];
 

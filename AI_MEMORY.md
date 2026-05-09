@@ -12,8 +12,8 @@
 - **Frontend:** React 18, Vite, TypeScript
 - **Estilização:** Tailwind CSS, Shadcn UI, Lucide Icons
 - **Backend/DB:** Supabase
-- **Deploy Frontend:** Lovable (Geração) / Railway (Planejado para Produção)
-- **Gerenciador de Pacotes:** NPM / Bun
+- **Deploy Frontend:** Railway (Produção Oficial)
+- **Gerenciador de Pacotes:** NPM
 
 ## 🔗 Integrações e Chaves
 ### Supabase
@@ -38,30 +38,31 @@
 - **Link estilo "Calendly":** Geração de link único por candidato.
 - **Página de Agendamento Pública:** Interface premium para candidatos.
 
-### 3. People Analytics (Business Intelligence)
-- **Dashboard Avançado:** Gráficos de funil, tempo médio de contratação e tendências de turnover.
-- **Filtros por Área:** Visualização da distribuição de colaboradores por departamento.
+### 3. Onboarding & Documentação Digital
+- **Checklist de Admissão:** Monitoramento de documentos (RG, CPF, Contrato) para novos talentos.
+- **Status de Entrada:** Acompanhamento visual do progresso de integração de cada colaborador.
 
-### 4. Segurança e Hardening (Nível Enterprise)
-- **Liveness Detection:** Desafios aleatórios de movimento ("Olhe para o lado") para prevenir fraudes com fotos estáticas no ponto eletrônico.
-- **Redirecionamento Inteligente:** Proteção de rotas que separa Admin de Colaborador automaticamente.
-- **QR Code Dinâmico:** Link robusto com ID de empresa embutido.
+### 4. Integração Contábil & Geofencing
+- **Exportação de Folha:** Geração de arquivo CSV formatado para sistemas de contabilidade.
+- **Alertas de Localização:** Sistema visual de avisos no Admin para batidas fora do raio permitido (Geofencing dinâmico).
+
+### 5. People Analytics (Business Intelligence)
+- **Dashboard Avançado:** Gráficos de funil, tempo médio de contratação e tendências de turnover.
 
 ## 🗺️ Roadmap de Evolução e Melhorias
 
-### 1. Inteligência Artificial (Próxima Etapa)
-- [ ] **Leitura de Currículos (Parsing Automático):** Processar PDFs e extrair Habilidades, Experiência, e Contato via IA.
-- [ ] **Matching de Candidatos:** Gerar uma pontuação (Score de 0 a 100%) da aderência do candidato aos requisitos da vaga.
+### 1. Inteligência Artificial (Próxima Etapa - Requer API OpenAI/Gemini)
+- [ ] **Leitura de Currículos (Parsing Automático):** Processar PDFs e extrair Habilidades e Experiência.
+- [ ] **Matching de Candidatos:** Gerar score de aderência automática à vaga.
 
 ### 2. Automação Dinâmica com WhatsApp
-- [ ] **Mensagens Automáticas de Status:** Enviar notificação pelo WhatsApp sempre que um candidato for movido no Pipeline.
-- [ ] **Integração Técnica:** Utilizar API Oficial do WhatsApp ou Evolution API.
+- [ ] **Notificações Ativas:** Enviar confirmações de agendamento e status via WhatsApp API.
 
 ## 📅 Histórico de Intervenções
 - **[03/05/2026]:** Configuração inicial e troca de chaves Supabase.
-- **[04/05/2026]:** Implementação do ecossistema de colaborador, agendamento e blindagem de segurança.
-- **[05/05/2026]:** Lançamento do módulo de People Analytics e introdução de Biometria/Liveness Detection no ponto.
-- **[09/05/2026]:** Integração total com o Railway concluída. Deploy efetuado no serviço `zaprecruit` com variáveis de ambiente sincronizadas.
+- **[04/05/2026]:** Implementação do ecossistema de colaborador, agendamento e segurança.
+- **[05/05/2026]:** Lançamento do módulo de People Analytics e Liveness Detection.
+- **[09/05/2026]:** Integração total com Railway concluída. Lançamento dos módulos de Onboarding Digital e Integração Contábil.
 
 ---
 *Nota para a IA: Este arquivo é a bússola do projeto. Mantenha-o sempre atualizado.*
