@@ -3,66 +3,64 @@
 > Este arquivo serve como a "memória contínua" do projeto para nós. Todas as decisões arquiteturais, integrações e o roadmap estão registrados aqui para garantir que nenhum contexto seja perdido entre sessões.
 
 ## 📋 Sobre o Projeto
-- **Nome:** System-RecruitIA
-- **Objetivo:** CRM de Recrutamento pelo WhatsApp.
+- **Nome:** System-RecruitIA / ZapRecruta
+- **Objetivo:** CRM de Recrutamento pelo WhatsApp + Gestão de RH Digital.
 - **Repositório:** [Joadsonvidal/System-RecruitIA](https://github.com/Joadsonvidal/System-RecruitIA)
+- **Produção:** [https://zaprecruit-production.up.railway.app](https://zaprecruit-production.up.railway.app)
 - **Local (Workspace):** `C:\Users\Usuário\Downloads\Sistemas\System-RecruitIA`
 
 ## 🛠️ Tech Stack
 - **Frontend:** React 18, Vite, TypeScript
 - **Estilização:** Tailwind CSS, Shadcn UI, Lucide Icons
-- **Backend/DB:** Supabase
-- **Deploy Frontend:** Railway (Produção Oficial)
-- **Gerenciador de Pacotes:** NPM
+- **Backend/DB:** Supabase (PostgreSQL + RLS)
+- **Deploy Frontend:** Railway (Infraestrutura oficial)
+- **Gerenciador de Pacotes:** NPM (Migrado de Bun para melhor compatibilidade de build)
 
 ## 🔗 Integrações e Chaves
 ### Supabase
-- **Status:** Apontando para a instância oficial.
+- **Status:** Instância oficial conectada.
 - **Project ID:** `sqlqhikhwlprrxnvjvrd`
-- **Ambiente Local:** O `.env` foi sincronizado.
+- **Ambiente Local:** O `.env` está sincronizado e protegido (ignorado pelo git).
 
 ### Railway (Deploy)
 - **Status:** Integrado via CLI.
-- **Projeto:** `System RecruitIA` (ID: `8002fd77-40b8-406e-987e-9a3fe59408e4`)
+- **Projeto:** `8002fd77-40b8-406e-987e-9a3fe59408e4`
 - **Serviço:** `zaprecruit`
-- **Deploy:** Automatizado via `railway up`. Variáveis configuradas.
+- **Hardening:** CORS restrito aos domínios oficiais.
 
 ## 🚀 Funcionalidades Entregues (Maio/2026)
 
-### 1. Portal do Colaborador (Autoatendimento)
-- **Interface PWA:** Navegação mobile-first por abas (Ponto, Mural, Meu RH).
-- **Mural de Avisos:** Sistema de comunicados internos com marcação de leitura.
-- **Solicitações RH:** Envio de atestados e pedidos de férias com upload.
+### 1. Portal do Colaborador (PWA)
+- **Ponto Biométrico:** Registro com geolocalização e **Liveness Detection** (biometria facial).
+- **Autoatendimento:** Mural de avisos e envio de solicitações (atestados/férias).
 
-### 2. Recrutamento & Agendamento
-- **Link estilo "Calendly":** Geração de link único por candidato.
-- **Página de Agendamento Pública:** Interface premium para candidatos.
+### 2. Gestão de Talentos (Admin)
+- **Pipeline Kanban:** CRM de recrutamento com fluxo de candidatos.
+- **Agendamento Inteligente:** Interface pública para candidatos marcarem entrevistas.
+- **Onboarding Digital:** Monitoramento de documentos de admissão.
 
-### 3. Onboarding & Documentação Digital
-- **Checklist de Admissão:** Monitoramento de documentos (RG, CPF, Contrato) para novos talentos.
-- **Status de Entrada:** Acompanhamento visual do progresso de integração de cada colaborador.
+### 3. Business Intelligence & BI
+- **People Analytics:** Dashboards de turnover, funil e retenção.
+- **Exportação Contábil:** Geração de folha de pagamento em CSV padrão contabilidade.
+- **Geofencing:** Alerta visual e auditoria de local de trabalho.
 
-### 4. Integração Contábil & Geofencing
-- **Exportação de Folha:** Geração de arquivo CSV formatado para sistemas de contabilidade.
-- **Alertas de Localização:** Sistema visual de avisos no Admin para batidas fora do raio permitido (Geofencing dinâmico).
+## 🛡️ Segurança & Hardening (Pentest Concluído)
+- **RLS (Row Level Security):** Todas as tabelas protegidas no nível do banco.
+- **OTP (One Time Password):** Fluxo de login de colaborador blindado no backend.
+- **CORS:** Restrição total de origem nas Edge Functions.
+- **Build Seguro:** Lockfile sincronizado e remoção de logs de depuração.
 
-### 5. People Analytics (Business Intelligence)
-- **Dashboard Avançado:** Gráficos de funil, tempo médio de contratação e tendências de turnover.
+## 🗺️ Roadmap de Evolução
 
-## 🗺️ Roadmap de Evolução e Melhorias
-
-### 1. Inteligência Artificial (Próxima Etapa - Requer API OpenAI/Gemini)
-- [ ] **Leitura de Currículos (Parsing Automático):** Processar PDFs e extrair Habilidades e Experiência.
-- [ ] **Matching de Candidatos:** Gerar score de aderência automática à vaga.
-
-### 2. Automação Dinâmica com WhatsApp
-- [ ] **Notificações Ativas:** Enviar confirmações de agendamento e status via WhatsApp API.
+### 1. IA e Automação (Próxima Fase)
+- [ ] **Leitura de Currículos (IA):** Extração de dados de PDFs via API OpenAI/Gemini.
+- [ ] **WhatsApp Bot:** Automação de notificações de status de processo.
 
 ## 📅 Histórico de Intervenções
-- **[03/05/2026]:** Configuração inicial e troca de chaves Supabase.
-- **[04/05/2026]:** Implementação do ecossistema de colaborador, agendamento e segurança.
-- **[05/05/2026]:** Lançamento do módulo de People Analytics e Liveness Detection.
-- **[09/05/2026]:** Integração total com Railway concluída. Lançamento dos módulos de Onboarding Digital e Integração Contábil.
+- **[03/05/2026]:** Configuração inicial Supabase.
+- **[04/05/2026]:** Implementação do ecossistema de colaborador.
+- **[05/05/2026]:** Lançamento de Analytics e Biometria.
+- **[09/05/2026]:** Integração total Railway, Onboarding Digital, Exportação Contábil e Hardening de Segurança (Pentest).
 
 ---
 *Nota para a IA: Este arquivo é a bússola do projeto. Mantenha-o sempre atualizado.*
