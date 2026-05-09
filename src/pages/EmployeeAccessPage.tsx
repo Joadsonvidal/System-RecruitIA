@@ -72,10 +72,6 @@ const EmployeeAccessPage = () => {
       }
       
       toast.success("Código enviado para o seu e-mail!");
-      if ((otpData as any)?.dev_pin) {
-         // Apenas em ambiente sem Resend configurado
-         toast.info(`PIN DE TESTE: ${(otpData as any).dev_pin}`, { duration: 10000 });
-      }
       setStep("otp");
     }
   };
