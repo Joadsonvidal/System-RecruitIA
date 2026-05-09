@@ -17,9 +17,15 @@
 
 ## 🔗 Integrações e Chaves
 ### Supabase
-- **Status:** Apontando para a instância do usuário.
-- **Project ID do Usuário:** `sqlqhikhwlprrxnvjvrd`
-- **Ambiente Local:** O `.env` já foi atualizado e enviado para o GitHub.
+- **Status:** Apontando para a instância oficial.
+- **Project ID:** `sqlqhikhwlprrxnvjvrd`
+- **Ambiente Local:** O `.env` foi sincronizado.
+
+### Railway (Deploy)
+- **Status:** Integrado via CLI.
+- **Projeto:** `System RecruitIA` (ID: `8002fd77-40b8-406e-987e-9a3fe59408e4`)
+- **Serviço:** `zaprecruit`
+- **Deploy:** Automatizado via `railway up`. Variáveis configuradas.
 
 ## 🚀 Funcionalidades Entregues (Maio/2026)
 
@@ -55,6 +61,7 @@
 - **[03/05/2026]:** Configuração inicial e troca de chaves Supabase.
 - **[04/05/2026]:** Implementação do ecossistema de colaborador, agendamento e blindagem de segurança.
 - **[05/05/2026]:** Lançamento do módulo de People Analytics e introdução de Biometria/Liveness Detection no ponto.
+- **[09/05/2026]:** Integração total com o Railway concluída. Deploy efetuado no serviço `zaprecruit` com variáveis de ambiente sincronizadas.
 
 ---
 *Nota para a IA: Este arquivo é a bússola do projeto. Mantenha-o sempre atualizado.*
